@@ -1,7 +1,7 @@
 # DayZ-Toolbox
 Sourcecode Repository for the DayZToolbox
 
-Features List:
+Features List:<br>
 	- Integrated Updater
 	- Config Editor
 	- Central Economy.xml Editor
