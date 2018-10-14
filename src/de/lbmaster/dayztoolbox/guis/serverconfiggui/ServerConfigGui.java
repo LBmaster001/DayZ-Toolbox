@@ -328,7 +328,10 @@ public class ServerConfigGui extends CustomDialog {
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
 
 		final JToggleButton btnShowAdvancedOptions = new JToggleButton("show advanced options");
+		btnShowAdvancedOptions.setFocusable(false);
+		btnShowAdvancedOptions.setSelected(advancedOptions);
 		buttonPane.add(btnShowAdvancedOptions);
+
 		btnShowAdvancedOptions.addActionListener(new ActionListener() {
 
 			@Override

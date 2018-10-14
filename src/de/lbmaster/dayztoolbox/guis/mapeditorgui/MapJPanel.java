@@ -30,6 +30,7 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 	private static final long serialVersionUID = 1L;
 	private MapImage mapImage;
 	private MapFile mapFile;
+	private MapEditorGui gui;
 
 	private double zoomFactor = 0.035;
 	private double prevZoomFactor = 0.035;
@@ -44,9 +45,10 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 	private int yDiff;
 	private Point startPoint;
 
-	public MapJPanel(String mapPath) {
+	public MapJPanel(String mapPath, MapEditorGui gui) {
 		loadImageAsync(mapPath);
 		initComponent();
+		this.gui = gui;
 		this.zoomer = true;
 	}
 
@@ -130,12 +132,12 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 		drawPositions.remove(positions);
 		onlyRepaint();
 	}
-	
+
 	public void clearPositionsDraw() {
 		drawPositions.clear();
 		onlyRepaint();
 	}
-	
+
 	public void onlyRepaint() {
 		translate = true;
 		repaint();
@@ -195,13 +197,13 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 		for (MapPositions positions : drawPositions) {
 			g2.setColor(positions.getColor());
 			for (MapPosition pos : positions.getPositions()) {
-				g2.drawRect((int) pos.getX(), (int) getInvertedZPos(pos.getZ()), (int) (10.0 / zoomFactor), (int) (10.0 / zoomFactor));
+				g2.drawRect((int) (pos.getX()- (4.0  / zoomFactor)), (int) getInvertedZPos(pos.getZ()+(4.0  / zoomFactor)), (int) (10.0 / zoomFactor), (int) (10.0 / zoomFactor));
 			}
 		}
 		g2.setColor(color2);
 
 	}
-	
+
 	private double getInvertedZPos(double y) {
 		return 15360.0 - y;
 	}
@@ -245,6 +247,8 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
+		if (released || startPoint == null)
+			return;
 		moved = true;
 		Point curPoint = e.getLocationOnScreen();
 		xDiff = curPoint.x - startPoint.x;
@@ -264,23 +268,37 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 			if (System.currentTimeMillis() - doubleClickTimeMS <= lastMouseClickButton1)
 				onDoubleClick();
 			lastMouseClickButton1 = System.currentTimeMillis();
+
+			if (gui.isPositionsAddSelected()) {
+				double xRel = MouseInfo.getPointerInfo().getLocation().getX() - getLocationOnScreen().getX();
+				double yRel = MouseInfo.getPointerInfo().getLocation().getY() - getLocationOnScreen().getY();
+				double mapPositionX = (-this.xOffset + xRel) / zoomFactor;
+				double mapPositionZ = getInvertedZPos((-this.yOffset + yRel) / zoomFactor);
+
+				MapPosition pos = new MapPosition(mapPositionX, mapPositionZ);
+				gui.getRightPanel().addPosition(pos);
+			}
 		}
 	}
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		released = false;
-		moved = false;
-		startPoint = MouseInfo.getPointerInfo().getLocation();
+		if (e.getButton() == MouseEvent.BUTTON1) {
+			released = false;
+			moved = false;
+			startPoint = MouseInfo.getPointerInfo().getLocation();
+		}
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent e) {
-		released = true;
-		if (moved)
-			repaint();
+		if (e.getButton() == MouseEvent.BUTTON1) {
+			released = true;
+			if (moved)
+				repaint();
+		}
 	}
-	
+
 	@Override
 	public void componentResized(ComponentEvent e) {
 		System.out.println("Resize");
@@ -294,19 +312,31 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 
 	@Override
 	public void mouseMoved(MouseEvent e) {
+		double xRel = MouseInfo.getPointerInfo().getLocation().getX() - getLocationOnScreen().getX();
+		double yRel = MouseInfo.getPointerInfo().getLocation().getY() - getLocationOnScreen().getY();
+		double mapPositionX = (-this.xOffset + xRel) / zoomFactor;
+		double mapPositionZ = getInvertedZPos((-this.yOffset + yRel) / zoomFactor);
+		String posX = mapPositionX + "00000";
+		posX = posX.substring(0, posX.indexOf(".") + 5);
+		String posZ = mapPositionZ + "00000";
+		posZ = posZ.substring(0, posZ.indexOf(".") + 5);
+		gui.getInfoLabel().setText("X:" + posX + " Z:" + posZ);
 	}
+
 	@Override
 	public void mouseEntered(MouseEvent e) {
 	}
+
 	@Override
 	public void mouseExited(MouseEvent e) {
 	}
+
 	@Override
 	public void componentHidden(ComponentEvent e) {
 	}
+
 	@Override
 	public void componentMoved(ComponentEvent e) {
 	}
-
 
 }

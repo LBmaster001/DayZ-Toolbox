@@ -21,7 +21,7 @@ public class MainClass {
 
 	public static final int mainVersion = 0;
 	public static final int buildVersion = 0;
-	public static final int buildId = 10880;
+	public static final int buildId = 10966;
 
 	public static void main(String[] args) {
 		Config.getConfig().setAutoSave(true);

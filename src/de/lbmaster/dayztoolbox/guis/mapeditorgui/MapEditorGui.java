@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JToggleButton;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 
@@ -25,6 +26,7 @@ import de.lbmaster.dayztoolbox.map.MapFile;
 import de.lbmaster.dayztoolbox.map.MapPositions;
 import de.lbmaster.dayztoolbox.utils.Config;
 import de.lbmaster.dayztoolbox.utils.PathFinder;
+import javax.swing.JLabel;
 
 public class MapEditorGui extends CustomDialog {
 
@@ -34,6 +36,9 @@ public class MapEditorGui extends CustomDialog {
 	private MapJPanel mapView;
 	private MapPositionsTree rightPanel;
 	private JButton btnAddPositionsFile;
+	private JLabel infoLabel;
+	private JToggleButton btnAddPositionWith;
+	private JButton btnExportPositions;
 
 	public MapEditorGui(String title) {
 		super(title);
@@ -41,11 +46,19 @@ public class MapEditorGui extends CustomDialog {
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"), ColumnSpec.decode("350px"), }, new RowSpec[] { RowSpec.decode("default:grow"), RowSpec.decode("23px"), }));
+		contentPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"), ColumnSpec.decode("200px"), ColumnSpec.decode("160px"), }, new RowSpec[] { RowSpec.decode("default:grow"), RowSpec.decode("23px"), }));
+
+		infoLabel = new JLabel();
+		contentPanel.add(infoLabel, "1, 2");
+
+		btnAddPositionWith = new JToggleButton("Add Position with Mouse");
+		btnAddPositionWith.setFocusable(false);
+		contentPanel.add(btnAddPositionWith, "2, 2, left, default");
 
 		btnAddPositionsFile = new JButton("Add Positions File");
+		btnAddPositionsFile.setFocusable(false);
 		btnAddPositionsFile.setToolTipText("Currently Supported files: cfgplayerspawnpoints.xml and cfgeventspawns.xml");
-		contentPanel.add(btnAddPositionsFile, "2, 2, right, default");
+		contentPanel.add(btnAddPositionsFile, "3, 2, right, default");
 
 		btnAddPositionsFile.addActionListener(new ActionListener() {
 
@@ -91,6 +104,8 @@ public class MapEditorGui extends CustomDialog {
 								try {
 									spawns.loadFromPlayerPositionsFile(posFile);
 									mapFile.addMapObject(spawns);
+									if (mapView != null)
+										mapView.clearPositionsDraw();
 								} catch (IOException e1) {
 									e1.printStackTrace();
 								}
@@ -99,7 +114,7 @@ public class MapEditorGui extends CustomDialog {
 								contentPanel.remove(rightPanel);
 							rightPanel = new MapPositionsTree(mapView.getMapFile());
 							rightPanel.setMapRenderer(mapView);
-							contentPanel.add(rightPanel, "2, 1, fill, fill");
+							contentPanel.add(rightPanel, "2, 1,2,1 fill, fill");
 							contentPanel.revalidate();
 							revalidate();
 						} else {
@@ -112,7 +127,7 @@ public class MapEditorGui extends CustomDialog {
 
 		JPanel buttonPane = new JPanel();
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);
-		buttonPane.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"), FormSpecs.DEFAULT_COLSPEC, FormSpecs.DEFAULT_COLSPEC, FormSpecs.DEFAULT_COLSPEC, }, new RowSpec[] { FormSpecs.LINE_GAP_ROWSPEC, RowSpec.decode("23px"), }));
+		buttonPane.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("default:grow"), FormSpecs.DEFAULT_COLSPEC, FormSpecs.DEFAULT_COLSPEC, FormSpecs.DEFAULT_COLSPEC, FormSpecs.DEFAULT_COLSPEC, }, new RowSpec[] { FormSpecs.LINE_GAP_ROWSPEC, RowSpec.decode("23px"), }));
 
 		textField = new JTextField();
 		buttonPane.add(textField, "1, 2, fill, center");
@@ -158,7 +173,7 @@ public class MapEditorGui extends CustomDialog {
 		JButton btnSaveChanges = new JButton("Save changes");
 		buttonPane.add(btnSaveChanges, "3, 2");
 		btnSaveChanges.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				if (mapView != null) {
@@ -179,10 +194,32 @@ public class MapEditorGui extends CustomDialog {
 			}
 		});
 
+		btnExportPositions = new JButton("Export Positions");
+		btnExportPositions.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				new MapExportDialog(MapEditorGui.this).setVisible(true);
+			}
+		});
+		buttonPane.add(btnExportPositions, "4, 2");
+
 		JButton cancelButton = new JButton("Close");
-		buttonPane.add(cancelButton, "4, 2, left, top");
+		buttonPane.add(cancelButton, "5, 2, left, top");
 		getRootPane().setDefaultButton(cancelButton);
 		cancelButton.addActionListener(getDefaultCloseListener());
+	}
+
+	public boolean isPositionsAddSelected() {
+		return btnAddPositionWith.isSelected();
+	}
+
+	public JLabel getInfoLabel() {
+		return infoLabel;
+	}
+
+	public MapPositionsTree getRightPanel() {
+		return rightPanel;
 	}
 
 	public void loadMe() {
@@ -197,6 +234,7 @@ public class MapEditorGui extends CustomDialog {
 	private void displayError(String error) {
 		new ErrorDialog(error, true).setVisible(true);
 	}
+
 	private void displayInfo(String info) {
 		new ErrorDialog(info, false).setVisible(true);
 	}
@@ -204,23 +242,24 @@ public class MapEditorGui extends CustomDialog {
 	private void load() {
 		if (!new File(textField.getText()).exists())
 			return;
-		System.out.println("" + (mapView != null));
+		System.out.println("Components: " + contentPanel.getComponentCount());
 		if (mapView != null) {
 			contentPanel.remove(mapView);
 			removeComponentListener(mapView);
 		}
 		if (rightPanel != null)
 			contentPanel.remove(rightPanel);
+
 		Config.getConfig().setString(Constants.CONFIG_lastMapFile, textField.getText());
 		contentPanel.revalidate();
 		revalidate();
-		mapView = new MapJPanel(textField.getText());
-		contentPanel.add(mapView, "1, 1, 1, 2, fill, fill");
+		mapView = new MapJPanel(textField.getText(), this);
+		contentPanel.add(mapView, "1, 1, 1, 1, fill, fill");
 		addComponentListener(mapView);
 
 		rightPanel = new MapPositionsTree(mapView.getMapFile());
 		rightPanel.setMapRenderer(mapView);
-		contentPanel.add(rightPanel, "2, 1, fill, fill");
+		contentPanel.add(rightPanel, "2, 1, 2, 1, fill, fill");
 		contentPanel.revalidate();
 		revalidate();
 	}

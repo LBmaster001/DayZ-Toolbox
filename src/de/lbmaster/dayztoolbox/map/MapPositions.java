@@ -20,6 +20,7 @@ public class MapPositions extends MapObject {
 
 	private List<MapPosition> positions = new ArrayList<MapPosition>();
 	private String name;
+	private int id = 0;
 
 	public MapPositions() {
 		super(MapObjectType.MAP_POINTS);
@@ -58,26 +59,44 @@ public class MapPositions extends MapObject {
 	public String getDisplayName() {
 		if (name == null)
 			return "???";
+		String displayName = "";
 		switch (name) {
 		case "player_positions":
-			return "Player SpawnPoints";
+			displayName += "Player SpawnPoints";
+			break;
 		case "VehicleCivilianSedan":
-			return "Civilian Sedan";
+			displayName += "Civilian Sedan";
+			break;
 		case "StaticHeliCrash":
-			return "Heli Crashsites";
+			displayName += "Heli Crashsites";
+			break;
 		case "VehicleOffroadHatchback":
-			return "Offroad Hatchback";
+			displayName += "Offroad Hatchback";
+			break;
 		case "StaticPoliceCar":
-			return "Police Cars";
+			displayName += "Police Cars";
+			break;
 		case "VehicleTransitBus":
-			return "Transit Bus";
+			displayName += "Transit Bus";
+			break;
 		case "VehicleV3SCargo":
-			return "V3S Cargo";
+			displayName += "V3S Cargo";
+			break;
 		case "VehicleV3SChassis":
-			return "V3S Chassis";
+			displayName += "V3S Chassis";
+			break;
 		default:
-			return name;
+			displayName += name;
+			break;
 		}
+		if (id > 0) {
+			displayName +=  " #" + id;
+		}
+		return displayName;
+	}
+	
+	public void setID(int id) {
+		this.id = id;
 	}
 
 	public void loadFromPlayerPositionsFile(File file) throws IOException {

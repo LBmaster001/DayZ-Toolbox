@@ -29,7 +29,7 @@ public class MapFile {
 	public MapFile(File file) {
 		this.file = file;
 	}
-	
+
 	public File getFile() {
 		return file;
 	}
@@ -39,24 +39,33 @@ public class MapFile {
 		copy.addAll(content);
 		for (MapObject obj : copy) {
 			if (obj != null && obj.getType().equals(MapObjectType.MAP_POINTS) && obj instanceof MapPositions)
-				content.remove(obj);
+				removeMapObject(obj);
 		}
 	}
+
 	public void removeAllImages() {
 		List<MapObject> copy = new ArrayList<MapObject>();
 		copy.addAll(content);
 		for (MapObject obj : copy) {
 			if (obj != null && obj.getType().equals(MapObjectType.MAP_IMAGE) && obj instanceof MapImage)
-				content.remove(obj);
+				removeMapObject(obj);
 		}
 	}
 
 	public void removeMapObject(MapObject obj) {
 		content.remove(obj);
 	}
-	
+
 	public void addMapObject(MapObject obj) {
-		content.add(obj);
+		if (obj instanceof MapPositions && getPositionsByDisplayName(((MapPositions) obj).getDisplayName()) != null) {
+			MapPositions parent = getPositionsByDisplayName(((MapPositions) obj).getDisplayName());
+			MapPositions child = ((MapPositions) obj);
+			for (MapPosition pos : child.getPositions()) {
+				parent.addPosition(pos);
+			}
+		} else {
+			content.add(obj);
+		}
 	}
 
 	public List<MapObject> getContent() {
@@ -74,6 +83,7 @@ public class MapFile {
 		}
 		return null;
 	}
+
 	public MapPositions getPositionsByDisplayName(String displayname) {
 		for (MapPositions pos : getAllPositions()) {
 			if (pos != null && pos.getDisplayName().equals(displayname))
@@ -84,7 +94,7 @@ public class MapFile {
 
 	public List<MapPositions> getAllPositions() {
 		List<MapPositions> positions = new ArrayList<MapPositions>();
-		for (MapObject obj : content) {
+		for (MapObject obj : getContent()) {
 			if (obj != null && obj.getType().equals(MapObjectType.MAP_POINTS) && obj instanceof MapPositions)
 				positions.add((MapPositions) obj);
 		}
@@ -93,7 +103,7 @@ public class MapFile {
 
 	public List<MapImage> getAllImages() {
 		List<MapImage> positions = new ArrayList<MapImage>();
-		for (MapObject obj : content) {
+		for (MapObject obj : getContent()) {
 			if (obj != null && obj.getType().equals(MapObjectType.MAP_IMAGE) && obj instanceof MapImage)
 				positions.add((MapImage) obj);
 		}
@@ -104,7 +114,7 @@ public class MapFile {
 		FileOutputStream out = new FileOutputStream(file);
 		ByteArrayOutputStream content = new ByteArrayOutputStream();
 		contentHeaders.clear();
-		for (MapObject obj : this.content) {
+		for (MapObject obj : getContent()) {
 			byte[] con = obj.toBytes();
 			content.write(con);
 			contentHeaders.add(new MapObjectHeader(con.length, obj.getType(), -1));
@@ -136,14 +146,14 @@ public class MapFile {
 	public void save() throws IOException {
 		save(this.file);
 	}
-	
+
 	public void readPositionsOnly() throws IOException {
 		readImages = false;
 		readPositions = true;
 		readContent();
 		readImages = true;
 	}
-	
+
 	public void readImagesOnly() throws IOException {
 		readImages = true;
 		readPositions = false;
@@ -167,7 +177,7 @@ public class MapFile {
 				if (!readImages)
 					break;
 				obj = new MapImage(null);
-				this.content.add(obj);
+				addMapObject(obj);
 				((MapImage) obj).loadFromBytes(content);
 				break;
 
@@ -175,7 +185,7 @@ public class MapFile {
 				if (!readPositions)
 					break;
 				obj = new MapPositions(content);
-				this.content.add(obj);
+				addMapObject(obj);
 				break;
 			default:
 				obj = null;
