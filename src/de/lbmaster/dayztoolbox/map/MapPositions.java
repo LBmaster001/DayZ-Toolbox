@@ -15,7 +15,7 @@ import org.jsoup.nodes.Element;
 import de.lbmaster.dayztoolbox.utils.ByteUtils;
 
 public class MapPositions extends MapObject {
-	
+
 	public static final String MAP_POSITIONS_NAME_PLAYER_SPAWNPOINTS = "player_positions";
 
 	private List<MapPosition> positions = new ArrayList<MapPosition>();
@@ -30,11 +30,11 @@ public class MapPositions extends MapObject {
 		this();
 		loadFromBytes(bytes);
 	}
-	
+
 	public List<MapPosition> getPositions() {
 		return positions;
 	}
-	
+
 	public Color getColor() {
 		switch (name) {
 		case "???":
@@ -55,7 +55,7 @@ public class MapPositions extends MapObject {
 			return Color.PINK;
 		}
 	}
-	
+
 	public String getDisplayName() {
 		if (name == null)
 			return "???";
@@ -90,11 +90,11 @@ public class MapPositions extends MapObject {
 			break;
 		}
 		if (id > 0) {
-			displayName +=  " #" + id;
+			displayName += " #" + id;
 		}
 		return displayName;
 	}
-	
+
 	public void setID(int id) {
 		this.id = id;
 	}
@@ -105,11 +105,12 @@ public class MapPositions extends MapObject {
 		this.name = MAP_POSITIONS_NAME_PLAYER_SPAWNPOINTS;
 		String content = new String(Files.readAllBytes(file.toPath()));
 		Document xml = Jsoup.parse(content);
+		System.out.println(xml.data());
 		Element playerspawnpoints = xml.getElementsByTag("playerspawnpoints").get(0);
 		Element generator_posbubbles = playerspawnpoints.getElementsByTag("generator_posbubbles").get(0);
-		loadXZFromXML(generator_posbubbles);
+		loadXZYAFromXML(generator_posbubbles);
 	}
-	
+
 	public static List<MapPositions> loadEventPositions(File file) throws IOException {
 		if (file == null || !file.exists())
 			throw new IllegalArgumentException("File is == null or not exsist !");
@@ -120,17 +121,28 @@ public class MapPositions extends MapObject {
 		for (Element e : eventposdef.getElementsByTag("event")) {
 			MapPositions pos = new MapPositions();
 			pos.setName(e.attr("name"));
-			pos.loadXZFromXML(e);
+			pos.loadXZYAFromXML(e);
 			System.out.println("Added Position: " + pos.getName() + " Locations: " + pos.getPositionsCount());
 			positions.add(pos);
 		}
 		return positions;
 	}
-	
-	private void loadXZFromXML(Element rootElement) {
+
+	private void loadXZYAFromXML(Element rootElement) {
 		for (Element e : rootElement.getAllElements()) {
-			if (e.tagName().equals("pos"))
-				positions.add(new MapPosition(Double.parseDouble(e.attr("x")), Double.parseDouble(e.attr("z"))));
+			if (e.tagName().equals("pos")) {
+				double x = 0, y = 0, z = 0, a = 0;
+				if (e.hasAttr("x"))
+					x = Double.parseDouble(e.attr("x"));
+				if (e.hasAttr("y"))
+					y = Double.parseDouble(e.attr("y"));
+				if (e.hasAttr("z"))
+					z = Double.parseDouble(e.attr("z"));
+				if (e.hasAttr("a"))
+					a = Double.parseDouble(e.attr("a"));
+				positions.add(new MapPosition(x, y, z, a));
+				System.out.println(positions.size());
+			}
 		}
 	}
 
@@ -145,20 +157,20 @@ public class MapPositions extends MapObject {
 			positions.add(new MapPosition(data));
 			pos += length;
 		}
-		if (bytes.length > pos+1) {
+		if (bytes.length > pos + 1) {
 			byte nameLength = bytes[pos];
-			this.name = new String(ByteUtils.substring(bytes, pos+1, nameLength));
+			this.name = new String(ByteUtils.substring(bytes, pos + 1, nameLength));
 		}
 	}
 
 	public int getPositionsCount() {
 		return positions.size();
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -170,13 +182,13 @@ public class MapPositions extends MapObject {
 	public void addPosition(MapPosition pos) {
 		positions.add(pos);
 	}
-	
+
 	public void removePosition(String pos) {
 		MapPosition pos2 = findPosByString(pos);
 		if (pos2 != null)
 			positions.remove(pos2);
 	}
-	
+
 	private MapPosition findPosByString(String toString) {
 		for (MapPosition pos : positions) {
 			if (pos.toString().equals(toString))
@@ -197,7 +209,7 @@ public class MapPositions extends MapObject {
 		content.write(ByteUtils.intToBytes(positions.size()));
 		content.write(bytes.toByteArray());
 		if (this.name != null) {
-			content.write(new byte[] {(byte) name.length()});
+			content.write(new byte[] { (byte) name.length() });
 			content.write(name.getBytes());
 		}
 		return content.toByteArray();

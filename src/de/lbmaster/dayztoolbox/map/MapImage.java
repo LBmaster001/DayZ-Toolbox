@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
+import de.lbmaster.dayztoolbox.MainClass;
 import de.lbmaster.dayztoolbox.utils.ByteUtils;
 
 public class MapImage extends MapObject {
@@ -46,6 +47,7 @@ public class MapImage extends MapObject {
 			}
 			System.gc();
 		}
+		MainClass.checkMemory();
 		hasFullyRead = true;
 		imgGraphics.dispose();
 		sourceWidth = img.getWidth();

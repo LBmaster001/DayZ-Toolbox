@@ -120,6 +120,10 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 	public MapFile getMapFile() {
 		return mapFile;
 	}
+	
+	public MapEditorGui getMapEditorGui() {
+		return gui;
+	}
 
 	private List<MapPositions> drawPositions = new ArrayList<MapPositions>();
 
@@ -276,7 +280,7 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 				double mapPositionZ = getInvertedZPos((-this.yOffset + yRel) / zoomFactor);
 
 				MapPosition pos = new MapPosition(mapPositionX, mapPositionZ);
-				gui.getRightPanel().addPosition(pos);
+				gui.getRightPanel().addPosition(pos, this);
 			}
 		}
 	}

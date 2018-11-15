@@ -7,7 +7,7 @@ public class CustomServerGuiButton extends CustomJButton {
 	private static final long serialVersionUID = 1L;
 
 	public CustomServerGuiButton() {
-		super("Server Config GUI", ServerConfigGui.class);
+		super("", ServerConfigGui.class);
 	}
 
 }

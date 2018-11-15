@@ -10,22 +10,28 @@ public class MapPosition {
 	double x;
 	double y;
 	double z;
+	double a;
 	String name;
 
-	public MapPosition(double x, double y, double z, String name) {
+	public MapPosition(double x, double y, double z, double a, String name) {
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		this.a = a;
 		this.name = name;
 	}
-	
+
 	@Override
 	public String toString() {
-		return ((this.name != null ? name + " " : "") + "X:" + x + " Y:" + y + " Z:" + z);
+		return ((this.name != null ? name + " " : "") + "X:" + x + " Y:" + y + " Z:" + z + " A:" + a);
+	}
+
+	public MapPosition(double x, double y, double z, double a) {
+		this(x, y, z, a, null);
 	}
 
 	public MapPosition(double x, double y, double z) {
-		this(x, y, z, null);
+		this(x, y, z, 0, null);
 	}
 
 	public MapPosition(double x, double z) {
@@ -52,6 +58,10 @@ public class MapPosition {
 			pos += 2;
 			this.name = new String(ByteUtils.substring(data, pos, length));
 		}
+		if ((type & 0x10) == 0x10) {
+			this.a = ByteUtils.readDouble(data, pos);
+			pos += 8;
+		}
 	}
 
 	public byte[] toBytes() throws IOException {
@@ -60,9 +70,10 @@ public class MapPosition {
 		type = (byte) (type | (y != 0 ? 0x02 : 0x00));
 		type = (byte) (type | (z != 0 ? 0x04 : 0x00));
 		type = (byte) (type | (name != null ? 0x08 : 0x00));
+		type = (byte) (type | (a != 0 ? 0x10 : 0x00));
 		System.out.println("Type: " + type);
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-		bytes.write(new byte[] {type});
+		bytes.write(new byte[] { type });
 		if (x != 0)
 			bytes.write(ByteUtils.doubleToBytes(x));
 		if (y != 0)
@@ -73,7 +84,17 @@ public class MapPosition {
 			bytes.write(ByteUtils.shortToBytes((short) name.length()));
 			bytes.write(name.getBytes());
 		}
+		if (a != 0)
+			bytes.write(ByteUtils.doubleToBytes(a));
 		return bytes.toByteArray();
+	}
+
+	public String toDayZReadableFormatPlayerSpawn() {
+		return "<pos x=\"" + this.x + "\" z=\"" + this.z + "\" />";
+	}
+
+	public String toDayZReadableFormatEventSpawn() {
+		return "<pos x=\"" + this.x + (this.y != 0 ? "\" y=\"" + this.y : "") + "\" z=\"" + this.z + (this.a != 0 ? "\" a=\"" + this.a : "")  + "\" />";
 	}
 
 	public double getX() {

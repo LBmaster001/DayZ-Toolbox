@@ -75,6 +75,16 @@ public class MapFile {
 	public MapPositions getPlayerSpawns() {
 		return getPositionsByName(MapPositions.MAP_POSITIONS_NAME_PLAYER_SPAWNPOINTS);
 	}
+	
+	public List<MapPositions> getAllEventSpawns() {
+		List<MapPositions> list = new ArrayList<MapPositions>();
+		for (MapPositions pos : getAllPositions()) {
+			if (!pos.getName().equals(MapPositions.MAP_POSITIONS_NAME_PLAYER_SPAWNPOINTS)) {
+				list.add(pos);
+			}
+		}
+		return list;
+	}
 
 	public MapPositions getPositionsByName(String name) {
 		for (MapPositions pos : getAllPositions()) {

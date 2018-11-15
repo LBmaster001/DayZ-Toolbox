@@ -1,7 +1,10 @@
 package de.lbmaster.dayztoolbox.guis.maingui;
 
 import java.awt.Font;
+import java.net.URL;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -18,6 +21,7 @@ import de.lbmaster.dayztoolbox.MainClass;
 import de.lbmaster.dayztoolbox.guis.economyconfiggui.CustomEconomyGuiButton;
 import de.lbmaster.dayztoolbox.guis.mapcreatorgui.CustomMapGuiButton;
 import de.lbmaster.dayztoolbox.guis.mapeditorgui.CustomMapEditorGuiButton;
+import de.lbmaster.dayztoolbox.guis.mapeditorgui.MapPositionsTree;
 import de.lbmaster.dayztoolbox.guis.serverconfiggui.CustomServerGuiButton;
 import de.lbmaster.dayztoolbox.guis.settingsgui.CustomSettingsGuiButton;
 import de.lbmaster.dayztoolbox.guis.tips.CustomTipsGuiButton;
@@ -41,22 +45,23 @@ public class MainGui extends JFrame {
 	public MainGui() {
 		frame = this;
 		setTitle("DayZ Modding Toolbox Version: " + MainClass.getBuildString());
+		setLocation(120, 120);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(new FormLayout(new ColumnSpec[] {
-				ColumnSpec.decode("max(150px;min):grow"),
-				ColumnSpec.decode("max(150px;min):grow"),
-				ColumnSpec.decode("max(150px;min):grow"),
-				ColumnSpec.decode("max(150px;min):grow"),},
+				ColumnSpec.decode("max(168px;default)"),
+				ColumnSpec.decode("max(168px;default)"),
+				ColumnSpec.decode("max(168px;default)"),
+				ColumnSpec.decode("max(168px;default)"),},
 			new RowSpec[] {
-				RowSpec.decode("max(50dlu;min)"),
+				RowSpec.decode("max(75px;min)"),
 				RowSpec.decode("26px"),
-				RowSpec.decode("max(50dlu;default)"),
-				RowSpec.decode("max(50dlu;default)"),
-				RowSpec.decode("max(50dlu;default)"),
-				RowSpec.decode("max(50dlu;default)"),}));
+				RowSpec.decode("75px"),
+				RowSpec.decode("75px"),
+				RowSpec.decode("75px"),
+				RowSpec.decode("75px"),}));
 
 		JLabel lblDayzModdingToolbox = new JLabel("DayZ Modding Toolbox");
 		lblDayzModdingToolbox.setFont(new Font(Constants.FONT, Font.BOLD, 30));
@@ -64,6 +69,8 @@ public class MainGui extends JFrame {
 		contentPane.add(lblDayzModdingToolbox, "1, 1, 4, 1");
 
 		btnServerConfigGui = new CustomServerGuiButton();
+		btnServerConfigGui.setIcon(loadIcon("serverconfig.jpeg"));
+		btnServerConfigGui.setFocusable(false);
 		contentPane.add(btnServerConfigGui, "1, 3, 2, 1, fill, fill");
 
 		btnSettingsConfigGui = new CustomSettingsGuiButton(this);
@@ -88,6 +95,12 @@ public class MainGui extends JFrame {
 		pack();
 		setResizable(false);
 
+	}
+	
+	private Icon loadIcon(String name) {
+		URL resource = MainGui.class.getResource(name);
+		Icon icon = new ImageIcon(resource);
+		return icon;
 	}
 
 	public void openUpdateDialog(boolean ignore) {

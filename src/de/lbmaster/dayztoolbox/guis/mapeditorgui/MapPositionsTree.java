@@ -80,19 +80,22 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 			((DefaultTreeModel) jtree.getModel()).reload();
 	}
 
-	private void initPositions() {
+	public void initPositions() {
 		System.out.println("InitPositions");
 		this.positions = mapFile.getAllPositions();
+		System.out.println("Positionscount: " + positions.size());
 		DefaultMutableTreeNode mainRoot = new DefaultMutableTreeNode("ROOT");
 		for (MapPositions pos : positions) {
 			String name = pos.getDisplayName();
 			DefaultMutableTreeNode root = new DefaultMutableTreeNode(name);
 			boolean add = false;
 			for (MapPosition position : pos.getPositions()) {
+				System.out.println(position.toString());
 				DefaultMutableTreeNode child = new DefaultMutableTreeNode(position.toString());
 				root.add(child);
 				add = true;
 			}
+			System.out.println("Adding Positions " + pos.getName() + " ? " + add);
 			if (add)
 				mainRoot.add(root);
 		}
@@ -138,13 +141,16 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 			mapRenderer.addPositionsDraw(pos);
 	}
 
-	public void addPosition(MapPosition position) {
+	public void addPosition(MapPosition position, MapJPanel mappanel) {
 		if (treeRenderer != null) {
 			Map<DefaultMutableTreeNode, Boolean> selectedNodes = treeRenderer.getLastSelections();
 			Map<DefaultMutableTreeNode, Boolean> selectedNodesCopy = new HashMap<DefaultMutableTreeNode, Boolean>();
 			selectedNodesCopy.putAll(selectedNodes);
-			if (selectedNodesCopy.size() == 0)
+			if (selectedNodesCopy.size() == 0) {
+				System.out.println("No nodes Selected");
+				openCreateCategoryDialog(position, mappanel);
 				return;
+			}
 			DefaultMutableTreeNode selectedNode = null;
 			for (Entry<DefaultMutableTreeNode, Boolean> entry : selectedNodesCopy.entrySet()) {
 				if (entry.getKey() != null) {
@@ -152,8 +158,10 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 					break;
 				}
 			}
-			if (selectedNode == null)
+			if (selectedNode == null) {
+				System.out.println("No node found !");
 				return;
+			}
 			System.out.println("Found selected Node " + selectedNode.getChildCount());
 			String positionsName = selectedNode.getPath()[1].toString();
 			MapPositions pos = mapRenderer.getMapFile().getPositionsByDisplayName(positionsName);
@@ -173,6 +181,12 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 			mapRenderer.onlyRepaint();
 
 		}
+	}
+	
+	private void openCreateCategoryDialog(MapPosition pos, MapJPanel mappanel) {
+		MapCreateCategoryGui createGui = new MapCreateCategoryGui(mappanel, pos);
+		createGui.setVisible(true);
+		createGui.requestFocus();
 	}
 
 	private void keyDeletePress() {

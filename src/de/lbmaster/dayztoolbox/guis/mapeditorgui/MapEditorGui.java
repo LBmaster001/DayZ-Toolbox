@@ -20,6 +20,7 @@ import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import de.lbmaster.dayztoolbox.Constants;
+import de.lbmaster.dayztoolbox.MainClass;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
 import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
 import de.lbmaster.dayztoolbox.map.MapFile;
@@ -76,7 +77,7 @@ public class MapEditorGui extends CustomDialog {
 
 					@Override
 					public boolean accept(File f) {
-						return f != null && (f.getName().endsWith(".xml") || f.isDirectory());
+						return f != null && ((f.getName().endsWith(".xml") && (f.getName().toLowerCase().contains("cfgeventspawns") || f.getName().toLowerCase().contains("cfgplayerspawnpoints"))) || f.isDirectory());
 					}
 				});
 				chooser.setBounds(252, 41, 50, 19);
@@ -221,6 +222,10 @@ public class MapEditorGui extends CustomDialog {
 	public MapPositionsTree getRightPanel() {
 		return rightPanel;
 	}
+	
+	public MapJPanel getMapPanel() {
+		return mapView;
+	}
 
 	public void loadMe() {
 		System.out.println("loading");
@@ -262,6 +267,8 @@ public class MapEditorGui extends CustomDialog {
 		contentPanel.add(rightPanel, "2, 1, 2, 1, fill, fill");
 		contentPanel.revalidate();
 		revalidate();
+		
+		MainClass.checkMemory();
 	}
 
 }

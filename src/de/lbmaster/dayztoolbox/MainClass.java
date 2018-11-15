@@ -2,7 +2,9 @@ package de.lbmaster.dayztoolbox;
 
 import java.awt.Font;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.List;
@@ -21,11 +23,14 @@ public class MainClass {
 
 	public static final int mainVersion = 0;
 	public static final int buildVersion = 0;
-	public static final int buildId = 10966;
+	public static final int buildId = 11045;
 
 	public static void main(String[] args) {
+		setupErrorFile();
 		Config.getConfig().setAutoSave(true);
 
+		checkMemory();
+		System.out.println("JVM is 64bit ? " + is64BitJVM());
 		findDayZServerFolder();
 		findArma3ToolsFolder();
 		findPBOManagerFolder();
@@ -43,6 +48,36 @@ public class MainClass {
 			mainGui.openUpdateDialog(false);
 	}
 	
+	private static void setupErrorFile() {
+		try {
+			String errorFileLocation = PathFinder.findDayZToolBoxFolder() + "/error.log";
+			if (errorFileLocation.startsWith("null")) {
+				errorFileLocation = "error.log";
+			}
+			File errorLog = new File(errorFileLocation);
+			if (errorLog.exists())
+				errorLog.delete();
+			errorLog.createNewFile();
+			if (!errorLog.exists()) {
+				errorLog.getParentFile().mkdirs();
+				errorLog.createNewFile();
+			}
+			System.setErr(new PrintStream(new FileOutputStream(errorLog)));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void checkMemory() {
+		System.out.println((Runtime.getRuntime().maxMemory()/1024/1024) + "mb available");
+	}
+	
+	private static boolean is64BitJVM() {
+		System.out.println("Java Version: " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "bit");
+		String version = System.getProperty("sun.arch.data.model");
+		return version != null && (version.endsWith("64") || !version.contains("32"));
+	}
+
 	private static void doUIManagerStuff() {
 		try {
 			UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
