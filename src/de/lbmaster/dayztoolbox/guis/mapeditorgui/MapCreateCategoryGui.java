@@ -5,6 +5,8 @@ import java.awt.Choice;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -32,21 +34,37 @@ public class MapCreateCategoryGui extends CustomDialog {
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
 		contentPanel.setLayout(null);
 
+
+		textField = new JTextField();
+		textField.setBounds(110, 62, 215, 20);
+		textField.setEditable(false);
+		textField.setText(MapPositions.MAP_POSITIONS_NAME_PLAYER_SPAWNPOINTS);
+		contentPanel.add(textField);
+		textField.setColumns(10);
+
 		final Choice choice = new Choice();
 		choice.add("Player Spawnpoints");
 		choice.add("Event Spawnpoints");
 		choice.setBounds(10, 36, 314, 20);
 		contentPanel.add(choice);
+		choice.addItemListener(new ItemListener() {
+			
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getItem().equals(choice.getItem(0))) {
+					System.out.println("Player Spawnpoint selected");
+					textField.setEditable(false);
+					textField.setText(MapPositions.MAP_POSITIONS_NAME_PLAYER_SPAWNPOINTS);
+				} else {
+					textField.setEditable(true);
+					textField.setText("");
+				}
+			}
+		});
 
 		JLabel label = new JLabel("Event Name:");
 		label.setBounds(10, 62, 90, 20);
 		contentPanel.add(label);
-
-		textField = new JTextField();
-		textField.setBounds(110, 62, 215, 20);
-		contentPanel.add(textField);
-		textField.setColumns(10);
-
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
 		getContentPane().add(buttonPane, BorderLayout.SOUTH);

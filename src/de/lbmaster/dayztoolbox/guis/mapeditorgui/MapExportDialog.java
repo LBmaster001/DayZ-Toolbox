@@ -156,10 +156,10 @@ public class MapExportDialog extends CustomDialog {
 				"        <max_steepness>0.785398163</max_steepness>\r\n" + 
 				"    </generator_params>\r\n" + 
 				"\r\n" + 
-				"    <generator_posbubbles>");
+				"    <generator_posbubbles>\r\n");
 		if (spawns != null) {
 			for (MapPosition pos : spawns.getPositions()) {
-				sb.append("\t\t" + pos.toDayZReadableFormatPlayerSpawn() + "\n");
+				sb.append("\t\t" + pos.toDayZReadableFormatPlayerSpawn() + "\r\n");
 			}
 		}
 		sb.append("    </generator_posbubbles>\r\n" + 
