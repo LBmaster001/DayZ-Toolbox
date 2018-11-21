@@ -2,6 +2,7 @@ package de.lbmaster.dayztoolbox.errorreporter;
 
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -10,16 +11,18 @@ import java.net.InetAddress;
 import java.net.Socket;
 
 import de.lbmaster.dayztoolbox.MainClass;
+import de.lbmaster.dayztoolbox.utils.PathFinder;
 
 public class ErrorReporter extends OutputStream implements Runnable {
 
-	private final String host = "localhost";
+	private final String host = "toast-teamspeak.de";
 	private final int port = 44555;
 	private StringBuilder line = new StringBuilder();
 	
 	private FileWriter fw = null;
 
 	public ErrorReporter() {
+		setupErrorFile();
 		System.setErr(new PrintStream(this, true));
 		new Thread(this).start();
 	}
@@ -33,7 +36,7 @@ public class ErrorReporter extends OutputStream implements Runnable {
 
 	private int lastLineLength;
 	private int waitCounter = 0;
-
+	private File errorLog;
 	@Override
 	public void run() {
 		while (true) {
@@ -61,10 +64,30 @@ public class ErrorReporter extends OutputStream implements Runnable {
 		}
 	}
 
+	
+	private void setupErrorFile() {
+		try {
+			String errorFileLocation = PathFinder.findDayZToolBoxFolder() + "/error.log";
+			if (errorFileLocation.startsWith("null")) {
+				errorFileLocation = "error.log";
+			}
+			errorLog = new File(errorFileLocation);
+			if (errorLog.exists())
+				errorLog.delete();
+			errorLog.createNewFile();
+			if (!errorLog.exists()) {
+				errorLog.getParentFile().mkdirs();
+				errorLog.createNewFile();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 	private boolean sendError() {
 		try {
 			fw = new FileWriter(new File(System.getProperty("user.home") + "/DayZTools/error.log"), true);
-			fw.write(MainClass.getBuildString() + "\n" + line.toString());
+			fw.write("Toolbox Version: " + MainClass.getBuildString() + "\n" + line.toString());
+			fw.flush();
 		} catch (IOException e1) {
 			System.out.println("ERROR !: could not write to errorlog " + e1.getMessage());
 		}
@@ -73,7 +96,7 @@ public class ErrorReporter extends OutputStream implements Runnable {
 			System.out.println("Connected to Error reporter ? " + s.isConnected());
 			if (s.isConnected()) {
 				DataOutputStream out = new DataOutputStream(s.getOutputStream());
-				out.writeUTF(MainClass.getBuildString() + "\n" + line.toString());
+				out.writeUTF("Toolbox Version: " + MainClass.getBuildString() + "\n" + line.toString());
 				s.close();
 				return true;
 			}

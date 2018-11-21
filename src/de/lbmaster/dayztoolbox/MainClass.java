@@ -2,9 +2,7 @@ package de.lbmaster.dayztoolbox;
 
 import java.awt.Font;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.List;
@@ -13,6 +11,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.plaf.FontUIResource;
 
+import de.lbmaster.dayztoolbox.errorreporter.ErrorReporter;
 import de.lbmaster.dayztoolbox.guis.maingui.MainGui;
 import de.lbmaster.dayztoolbox.updater.Updater;
 import de.lbmaster.dayztoolbox.updater.Version;
@@ -23,10 +22,10 @@ public class MainClass {
 
 	public static final int mainVersion = 0;
 	public static final int buildVersion = 0;
-	public static final int buildId = 11048;
+	public static final int buildId = 11054;
 
 	public static void main(String[] args) {
-		setupErrorFile();
+		new ErrorReporter();
 		Config.getConfig().setAutoSave(true);
 
 		checkMemory();
@@ -36,7 +35,6 @@ public class MainClass {
 		findPBOManagerFolder();
 		findDayZClientFolder();
 		findPal2PacEFolder();
-		// new ErrorReporter();
 		doUIManagerStuff();
 		setUIFont(new FontUIResource(Constants.FONT, Font.PLAIN, 12));
 		MainGui mainGui = new MainGui();
@@ -46,26 +44,6 @@ public class MainClass {
 		System.out.println("Is Update Available ? " + updateAvailable);
 		if (updateAvailable)
 			mainGui.openUpdateDialog(false);
-	}
-	
-	private static void setupErrorFile() {
-		try {
-			String errorFileLocation = PathFinder.findDayZToolBoxFolder() + "/error.log";
-			if (errorFileLocation.startsWith("null")) {
-				errorFileLocation = "error.log";
-			}
-			File errorLog = new File(errorFileLocation);
-			if (errorLog.exists())
-				errorLog.delete();
-			errorLog.createNewFile();
-			if (!errorLog.exists()) {
-				errorLog.getParentFile().mkdirs();
-				errorLog.createNewFile();
-			}
-			System.setErr(new PrintStream(new FileOutputStream(errorLog)));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
 	public static void checkMemory() {
