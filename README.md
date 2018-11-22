@@ -26,7 +26,7 @@ Planned Features:<br>
 Requirements:<br>
 	- Java (min Version: Java7 recommended: Java8x64)<br>
 Links:<br>
-	Toolbox Download: http://toast-teamspeak.de/dayztoolboxversions/DayZToolbox-0.0.10880.jar<br>
+	Toolbox Download: http://toast-teamspeak.de/dayztoolboxversions/DayZToolbox-0.0.11061.jar<br>
 	Java8x64 Download: https://www.oracle.com/technetwork/java/javase/downloads/jre8-downloads-2133155.html<br>
 	Example MapFile: http://toast-teamspeak.de/dayztoolboxexamples/mapfileexample.mff<br>
 	Source Code: https://github.com/LBmaster001/DayZ-Toolbox/<br>
