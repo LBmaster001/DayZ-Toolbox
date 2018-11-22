@@ -12,6 +12,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
 import de.lbmaster.dayztoolbox.utils.ByteUtils;
 
 public class MapPositions extends MapObject {
@@ -116,8 +117,12 @@ public class MapPositions extends MapObject {
 			throw new IllegalArgumentException("File is == null or not exsist !");
 		String content = new String(Files.readAllBytes(file.toPath()));
 		Document xml = Jsoup.parse(content);
-		Element eventposdef = xml.getElementsByTag("eventposdef").get(0);
 		List<MapPositions> positions = new ArrayList<MapPositions>();
+		if (xml.getElementsByTag("eventposdef").size() <= 0) {
+			new ErrorDialog("No Event Positions found in file!", true);
+			return positions;
+		}
+		Element eventposdef = xml.getElementsByTag("eventposdef").get(0);
 		for (Element e : eventposdef.getElementsByTag("event")) {
 			MapPositions pos = new MapPositions();
 			pos.setName(e.attr("name"));

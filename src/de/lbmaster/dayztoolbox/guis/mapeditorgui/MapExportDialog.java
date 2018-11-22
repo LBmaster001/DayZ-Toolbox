@@ -15,9 +15,6 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileFilter;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-
 import de.lbmaster.dayztoolbox.Constants;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
 import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
@@ -89,7 +86,7 @@ public class MapExportDialog extends CustomDialog {
 				JFileChooser chooser = new JFileChooser();
 				chooser.setDialogTitle("Browse...");
 				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				String lastFile = Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder);
+				String lastFile = Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder, "");
 				chooser.setCurrentDirectory(new File(lastFile));
 				chooser.setFileFilter(new FileFilter() {
 

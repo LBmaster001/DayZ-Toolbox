@@ -4,6 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -12,6 +15,8 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -23,9 +28,7 @@ import de.lbmaster.dayztoolbox.guis.CustomDialog;
 import de.lbmaster.dayztoolbox.guis.maingui.MainGui;
 import de.lbmaster.dayztoolbox.utils.Config;
 import de.lbmaster.dayztoolbox.utils.PathFinder;
-
-import javax.swing.SwingConstants;
-import javax.swing.JTextField;
+import de.lbmaster.dayztoolbox.utils.UIDGenerator;
 
 public class SettingsGui extends CustomDialog {
 
@@ -41,12 +44,22 @@ public class SettingsGui extends CustomDialog {
 
 	public SettingsGui(String title) {
 		super(title);
-		setBounds(150, 130, 700, 309);
+		setBounds(150, 130, 700, 345);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("max(100px;default)"), ColumnSpec.decode("max(150dlu;default):grow"), ColumnSpec.decode("max(70px;default)"), },
-				new RowSpec[] { RowSpec.decode("50dlu"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), }));
+		contentPanel.setLayout(new FormLayout(new ColumnSpec[] {
+				ColumnSpec.decode("max(100px;default)"),
+				ColumnSpec.decode("max(150dlu;default):grow"),
+				ColumnSpec.decode("max(70px;default)"),},
+			new RowSpec[] {
+				RowSpec.decode("50dlu"),
+				RowSpec.decode("30px"),
+				RowSpec.decode("30px"),
+				RowSpec.decode("30px"),
+				RowSpec.decode("30px"),
+				RowSpec.decode("30px"),
+				RowSpec.decode("30px"),}));
 
 		JLabel lblSettings = new JLabel("Settings");
 		lblSettings.setHorizontalAlignment(SwingConstants.CENTER);
@@ -159,6 +172,38 @@ public class SettingsGui extends CustomDialog {
 		btnBrowseArma.setActionCommand("arma3");
 		btnBrowsePal2Pac.addActionListener(new CustomActionListener(textPal2PacE, this));
 		btnBrowsePal2Pac.setActionCommand("pal2pac");
+		
+		JLabel lblUid = new JLabel("UID:");
+		lblUid.setHorizontalAlignment(SwingConstants.RIGHT);
+		contentPanel.add(lblUid, "1, 7");
+		
+		final JLabel uidlabel = new JLabel("");
+		String uid = Config.getConfig().getString("uniqueID", null);
+		if (uid == null || uid.length() != 64) {
+			uid = UIDGenerator.generate64UID();
+			Config.getConfig().setString("uniqueID", uid);
+			Config.getConfig().write();
+		}
+		uidlabel.setText(uid);
+		contentPanel.add(uidlabel, "2, 7");
+		
+		JButton btnCopy = new JButton("COPY");
+		contentPanel.add(btnCopy, "3, 7");
+		btnCopy.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String uid = uidlabel.getText();
+				if (uid == null || uid.length() != 64) {
+					uid = UIDGenerator.generate64UID();
+					Config.getConfig().setString("uniqueID", uid);
+					Config.getConfig().write();
+				}
+				StringSelection selection = new StringSelection(uid);
+				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				clipboard.setContents(selection, selection);
+			}
+		});
 
 		testIfValid();
 	}

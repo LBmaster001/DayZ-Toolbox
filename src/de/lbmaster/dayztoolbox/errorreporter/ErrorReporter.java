@@ -2,16 +2,20 @@ package de.lbmaster.dayztoolbox.errorreporter;
 
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.Random;
+
+import com.google.gson.JsonObject;
 
 import de.lbmaster.dayztoolbox.MainClass;
+import de.lbmaster.dayztoolbox.utils.Config;
 import de.lbmaster.dayztoolbox.utils.PathFinder;
+import de.lbmaster.dayztoolbox.utils.UIDGenerator;
 
 public class ErrorReporter extends OutputStream implements Runnable {
 
@@ -84,9 +88,30 @@ public class ErrorReporter extends OutputStream implements Runnable {
 		}
 	}
 	private boolean sendError() {
+		JsonObject rootObj = new JsonObject();
+		rootObj.addProperty("javaversion", System.getProperty("java.version"));
+		rootObj.addProperty("javavendor", System.getProperty("java.vendor"));
+		rootObj.addProperty("javabit", System.getProperty("sun.arch.data.model"));
+		rootObj.addProperty("osarch", System.getProperty("os.arch"));
+		rootObj.addProperty("osname", System.getProperty("os.name"));
+		rootObj.addProperty("osversion", System.getProperty("os.version"));
+		rootObj.addProperty("maxmemorybytes", Runtime.getRuntime().maxMemory());
+		rootObj.addProperty("freememorybytes", Runtime.getRuntime().freeMemory());
+		rootObj.addProperty("totalmemorybytes", Runtime.getRuntime().totalMemory());
+		rootObj.addProperty("processorcount", Runtime.getRuntime().availableProcessors());
+		rootObj.addProperty("toolboxversion", MainClass.getBuildString());
+		String uid = Config.getConfig().getString("uniqueID");
+		if (uid == null || uid.length() != 64) {
+			uid = UIDGenerator.generate64UID();
+			Config.getConfig().setString("uniqueID", uid);
+			Config.getConfig().write();
+		}
+		rootObj.addProperty("uniqueID", uid);
+		rootObj.addProperty("errormessage", line.toString());
+		String message = rootObj.toString();
 		try {
 			fw = new FileWriter(new File(System.getProperty("user.home") + "/DayZTools/error.log"), true);
-			fw.write("Toolbox Version: " + MainClass.getBuildString() + "\n" + line.toString());
+			fw.write(message);
 			fw.flush();
 		} catch (IOException e1) {
 			System.out.println("ERROR !: could not write to errorlog " + e1.getMessage());
@@ -96,7 +121,7 @@ public class ErrorReporter extends OutputStream implements Runnable {
 			System.out.println("Connected to Error reporter ? " + s.isConnected());
 			if (s.isConnected()) {
 				DataOutputStream out = new DataOutputStream(s.getOutputStream());
-				out.writeUTF("Toolbox Version: " + MainClass.getBuildString() + "\n" + line.toString());
+				out.writeUTF(message);
 				s.close();
 				return true;
 			}

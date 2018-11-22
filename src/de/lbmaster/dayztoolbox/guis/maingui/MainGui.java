@@ -21,7 +21,6 @@ import de.lbmaster.dayztoolbox.MainClass;
 import de.lbmaster.dayztoolbox.guis.economyconfiggui.CustomEconomyGuiButton;
 import de.lbmaster.dayztoolbox.guis.mapcreatorgui.CustomMapGuiButton;
 import de.lbmaster.dayztoolbox.guis.mapeditorgui.CustomMapEditorGuiButton;
-import de.lbmaster.dayztoolbox.guis.mapeditorgui.MapPositionsTree;
 import de.lbmaster.dayztoolbox.guis.serverconfiggui.CustomServerGuiButton;
 import de.lbmaster.dayztoolbox.guis.settingsgui.CustomSettingsGuiButton;
 import de.lbmaster.dayztoolbox.guis.tips.CustomTipsGuiButton;

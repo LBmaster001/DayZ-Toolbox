@@ -81,7 +81,7 @@ public class MapEditorGui extends CustomDialog {
 					}
 				});
 				chooser.setBounds(252, 41, 50, 19);
-				String lastFile = Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder);
+				String lastFile = Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder, "");
 				chooser.setCurrentDirectory(new File(lastFile));
 				getContentPane().add(chooser);
 

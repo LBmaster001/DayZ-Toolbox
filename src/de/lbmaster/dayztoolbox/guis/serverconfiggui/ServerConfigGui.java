@@ -34,6 +34,7 @@ import de.lbmaster.configparser.DayZConfig;
 import de.lbmaster.dayztoolbox.Constants;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
 import de.lbmaster.dayztoolbox.guis.maingui.MainGui;
+import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
 import de.lbmaster.dayztoolbox.utils.Config;
 import de.lbmaster.dayztoolbox.utils.NumberFormatterOverride;
 import javax.swing.JSplitPane;
@@ -46,10 +47,8 @@ public class ServerConfigGui extends CustomDialog {
 	private JTextField textFieldHostName;
 	private JXTextField textFieldAdminPassword, textFieldPassword, textFieldStartTime;
 	private JTextField textFieldLogFile;
-	private JCheckBox boxSaveHouseStates, boxFirstPersonOnly, boxEnableDebugMonitor, boxDisableCroshair, boxVerifyClientFiles, boxStorageAutoFix, boxForceSameVersion, 
-						boxVonEnabled, boxLogMemory, boxLogPlayers, boxLogAverageFps, boxSaveTime;
-	private JSpinner spinnerInstanceID, spinnerMaxPlayers, spinnerMaxPing, spinnerRespawnTime, spinnerMaxQueuePlayers, spinnerParallelProcessing,
-						spinnerPersistenceFileCount, spinnerVoNQuality, spinnerTimeAcceleration;
+	private JCheckBox boxSaveHouseStates, boxFirstPersonOnly, boxEnableDebugMonitor, boxDisableCroshair, boxVerifyClientFiles, boxStorageAutoFix, boxForceSameVersion, boxVonEnabled, boxLogMemory, boxLogPlayers, boxLogAverageFps, boxSaveTime;
+	private JSpinner spinnerInstanceID, spinnerMaxPlayers, spinnerMaxPing, spinnerRespawnTime, spinnerMaxQueuePlayers, spinnerParallelProcessing, spinnerPersistenceFileCount, spinnerVoNQuality, spinnerTimeAcceleration;
 	private Choice choiceTimeStampFormat;
 
 	private static final int smallHeight = 370;
@@ -62,36 +61,16 @@ public class ServerConfigGui extends CustomDialog {
 	public ServerConfigGui(String title) {
 		super(title);
 		boolean advancedOptions = Config.getConfig().getBoolean(Constants.CONFIG_advancedConfigView, false);
-		
+
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		setBounds(150, 130, 780, advancedOptions ? fullHeight : smallHeight);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new FormLayout(new ColumnSpec[] {
-				ColumnSpec.decode("max(100px;default)"),
-				ColumnSpec.decode("max(150px;default):grow"),
-				ColumnSpec.decode("max(100px;default)"),
-				ColumnSpec.decode("max(150px;default):grow"),},
-			new RowSpec[] {
-				RowSpec.decode("max(50dlu;default)"),
-				RowSpec.decode("max(30px;default)"),
-				RowSpec.decode("33px"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default):grow"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("33px"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),
-				RowSpec.decode("max(23px;default)"),}));
+		contentPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("max(100px;default)"), ColumnSpec.decode("max(150px;default):grow"), ColumnSpec.decode("max(100px;default)"), ColumnSpec.decode("max(150px;default):grow"), },
+				new RowSpec[] { RowSpec.decode("max(50dlu;default)"), RowSpec.decode("max(30px;default)"), RowSpec.decode("33px"), RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"),
+						RowSpec.decode("max(23px;default):grow"), RowSpec.decode("max(23px;default)"), RowSpec.decode("33px"), RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"),
+						RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"), RowSpec.decode("max(23px;default)"), }));
 
 		JLabel lblServerConfigGui = new JLabel("Server Config");
 		lblServerConfigGui.setHorizontalAlignment(SwingConstants.CENTER);
@@ -101,7 +80,7 @@ public class ServerConfigGui extends CustomDialog {
 		JLabel lblConfigLocation = new JLabel("Config:");
 		lblConfigLocation.setHorizontalAlignment(SwingConstants.RIGHT);
 		contentPanel.add(lblConfigLocation, "1, 2, fill, default");
-				
+
 		configchoice = new Choice();
 		contentPanel.add(configchoice, "2, 2");
 		addConfigChoiceItems();
@@ -111,7 +90,7 @@ public class ServerConfigGui extends CustomDialog {
 			configchoice.select(index);
 		}
 		configchoice.addItemListener(new ItemListener() {
-			
+
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
 				loadFile();
@@ -209,17 +188,17 @@ public class ServerConfigGui extends CustomDialog {
 
 		boxDisableCroshair = new JCheckBox("Disable Crosshair");
 		contentPanel.add(boxDisableCroshair, "4, 8");
-		
+
 		splitPane = new JSplitPane();
 		splitPane.setResizeWeight(0.2);
 		splitPane.setBorder(null);
 		splitPane.setSize(splitPane.getWidth(), 23);
 		contentPanel.add(splitPane, "4, 9, fill, fill");
-		
+
 		spinnerTimeAcceleration = new JSpinner();
 		spinnerTimeAcceleration.setModel(new SpinnerNumberModel(0, 0, 24, 1));
 		splitPane.setLeftComponent(spinnerTimeAcceleration);
-		
+
 		boxSaveTime = new JCheckBox("Save Time");
 		splitPane.setRightComponent(boxSaveTime);
 
@@ -314,11 +293,11 @@ public class ServerConfigGui extends CustomDialog {
 		textFieldLogFile = new JTextField();
 		contentPanel.add(textFieldLogFile, "2, 17, 2, 1, fill, default");
 		textFieldLogFile.setColumns(10);
-		
+
 		lblMissionTemplate = new JLabel("Mission Template:");
 		lblMissionTemplate.setHorizontalAlignment(SwingConstants.RIGHT);
 		contentPanel.add(lblMissionTemplate, "1, 18, right, default");
-		
+
 		textFieldMissionTemplate = new JTextField();
 		contentPanel.add(textFieldMissionTemplate, "2, 18, 2, 1, fill, default");
 		textFieldMissionTemplate.setColumns(10);
@@ -365,7 +344,7 @@ public class ServerConfigGui extends CustomDialog {
 		cancelButton.addActionListener(getDefaultCloseListener());
 		loadFile();
 	}
-	
+
 	private void addConfigChoiceItems() {
 		for (File f : new File(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder)).listFiles()) {
 			if (f.isFile() && f.getName().endsWith(".cfg")) {
@@ -373,7 +352,7 @@ public class ServerConfigGui extends CustomDialog {
 			}
 		}
 	}
-	
+
 	private int getItemIndex(String item) {
 		for (int i = 0; i < configchoice.getItemCount(); i++) {
 			if (configchoice.getItem(i).equals(item))
@@ -423,7 +402,7 @@ public class ServerConfigGui extends CustomDialog {
 		cfg.setInteger("logMemory", boxLogMemory.isSelected() ? 1 : 0);
 		cfg.setInteger("logAverageFps", boxLogAverageFps.isSelected() ? 1 : 0);
 		cfg.setInteger("logPlayers", boxLogPlayers.isSelected() ? 1 : 0);
-		
+
 		try {
 			System.out.println("Save successful ? " + cfg.save());
 		} catch (IOException e) {
@@ -447,39 +426,43 @@ public class ServerConfigGui extends CustomDialog {
 			System.err.println("Failed to read config " + cfg.getFileLocation());
 			System.out.println("Failed to read config " + cfg.getFileLocation());
 		}
+		try {
 
-		textFieldHostName.setText(cfg.getString("hostname", "NO HOSTNAME!"));
-		textFieldPassword.setText(cfg.getString("password", ""));
-		textFieldAdminPassword.setText(cfg.getString("passwordAdmin", ""));
-		textFieldStartTime.setText(cfg.getString("serverTime", "SystemTime"));
-		choiceTimeStampFormat.select(cfg.getString("timeStampFormat", "Short"));
-		textFieldLogFile.setText(cfg.getString("logFile", "server_console.log"));
-		textFieldMissionTemplate.setText(cfg.getString("Missions.DayZ.template", "dayzOffline.chernarusplussss"));
+			textFieldHostName.setText(cfg.getString("hostname", "NO HOSTNAME!"));
+			textFieldPassword.setText(cfg.getString("password", ""));
+			textFieldAdminPassword.setText(cfg.getString("passwordAdmin", ""));
+			textFieldStartTime.setText(cfg.getString("serverTime", "SystemTime"));
+			choiceTimeStampFormat.select(cfg.getString("timeStampFormat", "Short"));
+			textFieldLogFile.setText(cfg.getString("logFile", "server_console.log"));
+			textFieldMissionTemplate.setText(cfg.getString("Missions.DayZ.template", "dayzOffline.chernarusplussss"));
 
-		spinnerInstanceID.setValue(cfg.getInteger("instanceId", 0));
-		spinnerMaxPing.setValue(cfg.getInteger("maxPing", 200));
-		spinnerMaxPlayers.setValue(cfg.getInteger("maxPlayers", 60));
-		spinnerMaxQueuePlayers.setValue(cfg.getInteger("loginQueueMaxPlayers", 500));
-		spinnerParallelProcessing.setValue(cfg.getInteger("loginQueueConcurrentPlayers", 5));
-		spinnerPersistenceFileCount.setValue(cfg.getInteger("lootHistory", 1));
-		spinnerRespawnTime.setValue(cfg.getInteger("respawnTime", 5));
-		spinnerTimeAcceleration.setValue(cfg.getInteger("serverTimeAcceleration", 0));
-		spinnerVoNQuality.setValue(cfg.getInteger("vonCodecQuality", 7));
+			spinnerInstanceID.setValue(cfg.getInteger("instanceId", 0));
+			spinnerMaxPing.setValue(cfg.getInteger("maxPing", 200));
+			spinnerMaxPlayers.setValue(cfg.getInteger("maxPlayers", 60));
+			spinnerMaxQueuePlayers.setValue(cfg.getInteger("loginQueueMaxPlayers", 500));
+			spinnerParallelProcessing.setValue(cfg.getInteger("loginQueueConcurrentPlayers", 5));
+			spinnerPersistenceFileCount.setValue(cfg.getInteger("lootHistory", 1));
+			spinnerRespawnTime.setValue(cfg.getInteger("respawnTime", 5));
+			spinnerTimeAcceleration.setValue(cfg.getInteger("serverTimeAcceleration", 0));
+			spinnerVoNQuality.setValue(cfg.getInteger("vonCodecQuality", 7));
 
-		boxDisableCroshair.setSelected(cfg.getInteger("disableCrosshair", 0) == 1);
-		boxEnableDebugMonitor.setSelected(cfg.getInteger("enableDebugMonitor", 0) == 1);
-		boxFirstPersonOnly.setSelected(cfg.getInteger("disable3rdPerson", 0) == 1);
-		boxForceSameVersion.setSelected(cfg.getInteger("forceSameBuild", 1) == 1);
-		boxSaveHouseStates.setSelected(!cfg.getBoolean("storeHouseStateDisabled", cfg.isDefaultcasesensitive(), false));
-		boxSaveTime.setSelected(cfg.getInteger("serverTimePersistent", 0) == 1);
-		boxStorageAutoFix.setSelected(cfg.getInteger("storageAutoFix", 1) == 1);
-		boxVerifyClientFiles.setSelected(cfg.getInteger("verifySignatures", 2) == 2);
-		boxVonEnabled.setSelected(cfg.getInteger("disableVoN", 0) == 0);
+			boxDisableCroshair.setSelected(cfg.getInteger("disableCrosshair", 0) == 1);
+			boxEnableDebugMonitor.setSelected(cfg.getInteger("enableDebugMonitor", 0) == 1);
+			boxFirstPersonOnly.setSelected(cfg.getInteger("disable3rdPerson", 0) == 1);
+			boxForceSameVersion.setSelected(cfg.getInteger("forceSameBuild", 1) == 1);
+			boxSaveHouseStates.setSelected(!cfg.getBoolean("storeHouseStateDisabled", cfg.isDefaultcasesensitive(), false));
+			boxSaveTime.setSelected(cfg.getInteger("serverTimePersistent", 0) == 1);
+			boxStorageAutoFix.setSelected(cfg.getInteger("storageAutoFix", 1) == 1);
+			boxVerifyClientFiles.setSelected(cfg.getInteger("verifySignatures", 2) == 2);
+			boxVonEnabled.setSelected(cfg.getInteger("disableVoN", 0) == 0);
 
-		boxLogMemory.setSelected(cfg.getInteger("logMemory", 0) == 1);
-		boxLogAverageFps.setSelected(cfg.getInteger("logAverageFps", 0) == 1);
-		boxLogPlayers.setSelected(cfg.getInteger("logPlayers", 0) == 1);
-		
+			boxLogMemory.setSelected(cfg.getInteger("logMemory", 0) == 1);
+			boxLogAverageFps.setSelected(cfg.getInteger("logAverageFps", 0) == 1);
+			boxLogPlayers.setSelected(cfg.getInteger("logPlayers", 0) == 1);
+		} catch (Exception e) {
+			e.printStackTrace();
+			new ErrorDialog("Failed to read the Config File! Check your config for any syntax error. " + e.getMessage() + "", true).setVisible(true);
+		}
 		contentPanel.revalidate();
 		contentPanel.repaint();
 	}

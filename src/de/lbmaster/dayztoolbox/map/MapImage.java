@@ -9,6 +9,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import de.lbmaster.dayztoolbox.MainClass;
+import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
 import de.lbmaster.dayztoolbox.utils.ByteUtils;
 
 public class MapImage extends MapObject {
@@ -25,7 +26,13 @@ public class MapImage extends MapObject {
 		this.imageBytes = imageBytes;
 		byte xSlices = imageBytes[0];
 		byte ySlices = imageBytes[1];
+		try {
 		img = new BufferedImage(xSlices * maxSliceSize, ySlices * maxSliceSize, BufferedImage.TYPE_INT_RGB);
+		} catch (Exception e) {
+			e.printStackTrace();
+			new ErrorDialog("Out of Memory error! " + (MainClass.is64BitJVM() ? "You are not using the 64bit Java Version. Download the 64bit Version to resolve this issue" : ""), true);
+			return;
+		}
 		Graphics imgGraphics = img.createGraphics();
 
 		int pos = 2;

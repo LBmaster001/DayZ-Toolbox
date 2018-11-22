@@ -22,8 +22,9 @@ public class MainClass {
 
 	public static final int mainVersion = 0;
 	public static final int buildVersion = 0;
-	public static final int buildId = 11054;
+	public static final int buildId = 11061;
 
+	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		new ErrorReporter();
 		Config.getConfig().setAutoSave(true);
@@ -50,7 +51,7 @@ public class MainClass {
 		System.out.println((Runtime.getRuntime().maxMemory()/1024/1024) + "mb available");
 	}
 	
-	private static boolean is64BitJVM() {
+	public static boolean is64BitJVM() {
 		System.out.println("Java Version: " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "bit");
 		String version = System.getProperty("sun.arch.data.model");
 		return version != null && (version.endsWith("64") || !version.contains("32"));
