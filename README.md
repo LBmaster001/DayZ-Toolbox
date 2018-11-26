@@ -1,27 +1,34 @@
 # DayZ-Toolbox
 Sourcecode Repository for the DayZToolbox
 <br>
-Features List:<br>
-	- Integrated Updater<br>
-	- Config Editor<br>
-	- Central Economy.xml Editor<br>
-	- Map Creator (from PBO Files)<br>
-	- Map Editor<br>
-		- Own File Format (.mff)<br>
-		- Scroll through the map easily<br>
-		- load Positions (currently only Player Spawns and EventSpawns)<br>
-		- show / hide Positions<br>
-	- Automatic Folder discovery (e.g. finds DayZServer folder)<br>
-	- Integrated Tips (only few. More will come)<br>
-	- Example MapFile to download<br>
-	- Source Code available on Github. Only for personal Use !<br>
-	- Multi Platform support (thanks to Java)<br>
-<br>
-Planned Features:<br>
-	- Portforwarding via UPnP<br>
-	- adding Positions to MapFile<br>
-	- easy "Feedback Tracker" or "Bugreporting"<br>
-	- UI Changes (I would like to see suggestions from you)<br>
+Features List:
+    - Integrated Updater
+    - Config Editor
+    - Central Economy.xml Editor
+    - Map Creator (from PBO Files)
+    - Map Editor
+        - Own File Format (.mff)
+        - Scroll through the map easily
+        - load Positions (currently only Player Spawns and EventSpawns)
+        - show / hide Positions
+        - add Positions easily by clicking on the map
+        - remove Positions by selecting them on the right an press the DEL button
+        - see the coordinates where your mouse is
+        - export edited positions back to DayZ readable files
+        - create new event when adding new point without having any other event selected
+    - Automatic Folder discovery (e.g. finds DayZServer folder)
+    - Integrated Tips (only few. More will come)
+    - Example MapFile to download
+    - Source Code available on Github. Only for personal Use !
+    - Multi Platform support (thanks to Java)
+    - Players.DB
+        - most data can be read
+        - Show all player positions on the map
+
+Planned Features:
+    - Portforwarding via UPnP
+    - easy "Feedback Tracker" or "Bugreporting"
+    - UI Changes (I would like to see suggestions from you) 
 <br>
 Requirements:<br>
 	- Java (min Version: Java7 recommended: Java8x64)<br>
