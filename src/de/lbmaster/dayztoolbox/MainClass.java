@@ -22,13 +22,13 @@ public class MainClass {
 
 	public static final int mainVersion = 0;
 	public static final int buildVersion = 0;
-	public static final int buildId = 11061;
+	public static final int buildId = 11245;
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		new ErrorReporter();
 		Config.getConfig().setAutoSave(true);
-
+		
 		checkMemory();
 		System.out.println("JVM is 64bit ? " + is64BitJVM());
 		findDayZServerFolder();
@@ -49,6 +49,10 @@ public class MainClass {
 	
 	public static void checkMemory() {
 		System.out.println((Runtime.getRuntime().maxMemory()/1024/1024) + "mb available");
+	}
+	
+	public static boolean isWindows() {
+		return System.getProperty("os.name").contains("Windows");
 	}
 	
 	public static boolean is64BitJVM() {

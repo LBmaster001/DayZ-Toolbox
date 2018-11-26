@@ -24,6 +24,7 @@ import com.jgoodies.forms.layout.RowSpec;
 
 import de.lbmaster.dayztoolbox.Constants;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
+import de.lbmaster.dayztoolbox.guis.ErrorDialog;
 import de.lbmaster.dayztoolbox.map.MapFile;
 import de.lbmaster.dayztoolbox.map.MapImage;
 import de.lbmaster.dayztoolbox.utils.Config;
@@ -142,13 +143,13 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				String clientFolder = Config.getConfig().getString(Constants.CONFIG_dayzclient);
 				if (clientFolder == null) {
 					progressBar.setValue(0);
-					displayError("DayZ Client Folder not set! Go to Settings and set the DayZ Client Folder value");
+					ErrorDialog.displayError("DayZ Client Folder not set! Go to Settings and set the DayZ Client Folder value");
 					return;
 				}
 				File addons = new File(clientFolder + "/Addons");
 				if (!addons.exists()) {
 					progressBar.setValue(50);
-					displayError("Addons Folder not found !");
+					ErrorDialog.displayError("Addons Folder not found !");
 					return;
 				}
 				progressBar.setValue(100);
@@ -159,18 +160,18 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				String pboManagerPath = Config.getConfig().getString(Constants.CONFIG_pbomanager);
 				if (pboManagerPath == null) {
 					progressBar_1.setValue(0);
-					displayError("PBOManager Folder not set! Go to Settings and set the PBOManager Folder value");
+					ErrorDialog.displayError("PBOManager Folder not set! Go to Settings and set the PBOManager Folder value");
 					return;
 				}
 				if (!PathFinder.validatePBOManagerPath(pboManagerPath)) {
 					progressBar_1.setValue(50);
-					displayError("PBOManager not found! Go to Settings and set the PBOManager Folder value");
+					ErrorDialog.displayError("PBOManager not found! Go to Settings and set the PBOManager Folder value");
 					return;
 				}
 				File mapAddon = new File(addons.getAbsolutePath() + "/worlds_chernarusplus_data.pbo");
 				if (!mapAddon.exists()) {
 					progressBar_1.setValue(60);
-					displayError("Map File not found ! Please check your addons folder for \"worlds_chernarusplus_data.pbo\"");
+					ErrorDialog.displayError("Map File not found ! Please check your addons folder for \"worlds_chernarusplus_data.pbo\"");
 					return;
 				}
 				if (stop)
@@ -187,7 +188,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 					return;
 				if (!mapFolder.exists()) {
 					progressBar_1.setValue(75);
-					displayError("Failed to extract the PBO File !");
+					ErrorDialog.displayError("Failed to extract the PBO File !");
 					return;
 				}
 				progressBar_1.setValue(progressBar_1.getMaximum());
@@ -195,7 +196,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				Pal2PacE pal2pace = Pal2PacE.findPal2PacE();
 				if (pal2pace == null) {
 					progressBar_2.setValue(0);
-					displayError("No Pal2PacE.exe found! Check your Arma 3 Tools Folder! Cannot convert PAA Files to PNG !");
+					ErrorDialog.displayError("No Pal2PacE.exe found! Check your Arma 3 Tools Folder! Cannot convert PAA Files to PNG !");
 					return;
 				} else {
 					System.out.println("Pal2PacE.exe found ! " + pal2pace.getPal2PacELocation());
@@ -206,7 +207,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				File data_dir = new File(mapFolder.getAbsolutePath() + "/layers");
 				if (!data_dir.exists()) {
 					progressBar_2.setValue(0);
-					displayError("Malformed Word Data Folder ! No Layers Folder found !");
+					ErrorDialog.displayError("Malformed Word Data Folder ! No Layers Folder found !");
 					return;
 				}
 				int xMax = 0;
@@ -245,7 +246,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				BufferedImage firstImg = null;
 				try {
 					if (pngOutput.listFiles().length <= 0) {
-						displayError("Something went wrong while converting the images. Please report this error.");
+						ErrorDialog.displayError("Something went wrong while converting the images. Please report this error.");
 						return;
 					}
 					firstImg = ImageIO.read(pngOutput.listFiles()[0]);
@@ -314,7 +315,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 					Config.getConfig().setString(Constants.CONFIG_lastMapFile, mapFileFile.getAbsolutePath());
 					progressBar_4.setValue(progressBar_4.getMaximum());
 
-					displayInfo("Map successfully created. File was saved at: " + mapFile.getAbsolutePath());
+					ErrorDialog.displayInfo("Map successfully created. File was saved at: " + mapFile.getAbsolutePath());
 				} catch (IOException e) {
 					e.printStackTrace();
 					return;
@@ -348,14 +349,4 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 		}).start();
 
 	}
-
-	private void displayError(String error) {
-		okButton.setEnabled(true);
-		new ErrorDialog(error, true).setVisible(true);
-	}
-
-	private void displayInfo(String info) {
-		new ErrorDialog(info, false).setVisible(true);
-	}
-
 }

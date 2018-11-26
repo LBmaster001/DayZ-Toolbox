@@ -3,7 +3,7 @@ package de.lbmaster.dayztoolbox.map;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import de.lbmaster.dayztoolbox.utils.ByteUtils;
+import de.lbmaster.dayztoolbox.utils.ByteUtilsBE;
 
 public class MapObjectHeader {
 
@@ -20,8 +20,8 @@ public class MapObjectHeader {
 	public byte[] toBytes() throws IOException {
 		short type = this.type.getID();
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream(MapFileHeader.CONTENT_HEADER_SIZE);
-		buffer.write(ByteUtils.shortToBytes(type));
-		buffer.write(ByteUtils.longToBytes(contentSize));
+		buffer.write(ByteUtilsBE.shortToBytes(type));
+		buffer.write(ByteUtilsBE.longToBytes(contentSize));
 		System.out.println("Type: " + type + " Size: " + contentSize);
 		return buffer.toByteArray();
 	}

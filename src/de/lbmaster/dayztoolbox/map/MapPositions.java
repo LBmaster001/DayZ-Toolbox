@@ -12,8 +12,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
-import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
-import de.lbmaster.dayztoolbox.utils.ByteUtils;
+import de.lbmaster.dayztoolbox.guis.ErrorDialog;
+import de.lbmaster.dayztoolbox.utils.ByteUtilsBE;
 
 public class MapPositions extends MapObject {
 
@@ -52,6 +52,8 @@ public class MapPositions extends MapObject {
 			return Color.MAGENTA;
 		case "StaticPoliceCar":
 			return Color.YELLOW;
+		case "Player Positions":
+			return Color.WHITE;
 		default:
 			return Color.PINK;
 		}
@@ -119,7 +121,7 @@ public class MapPositions extends MapObject {
 		Document xml = Jsoup.parse(content);
 		List<MapPositions> positions = new ArrayList<MapPositions>();
 		if (xml.getElementsByTag("eventposdef").size() <= 0) {
-			new ErrorDialog("No Event Positions found in file!", true);
+			ErrorDialog.displayError("No Event Positions found in file!");
 			return positions;
 		}
 		Element eventposdef = xml.getElementsByTag("eventposdef").get(0);
@@ -145,26 +147,26 @@ public class MapPositions extends MapObject {
 					z = Double.parseDouble(e.attr("z"));
 				if (e.hasAttr("a"))
 					a = Double.parseDouble(e.attr("a"));
-				positions.add(new MapPosition(x, y, z, a));
+				positions.add(new MapPosition(x, y, z, a, this));
 				System.out.println(positions.size());
 			}
 		}
 	}
 
 	public void loadFromBytes(byte[] bytes) {
-		int size = ByteUtils.readInt(bytes, 0);
+		int size = ByteUtilsBE.readInt(bytes, 0);
 		System.out.println("Map Positions Size: " + size);
 		int pos = 4;
 		for (int i = 0; i < size; i++) {
 			byte length = bytes[pos];
 			pos += 1;
-			byte[] data = ByteUtils.substring(bytes, pos, length);
-			positions.add(new MapPosition(data));
+			byte[] data = ByteUtilsBE.substring(bytes, pos, length);
+			positions.add(new MapPosition(data, this));
 			pos += length;
 		}
 		if (bytes.length > pos + 1) {
 			byte nameLength = bytes[pos];
-			this.name = new String(ByteUtils.substring(bytes, pos + 1, nameLength));
+			this.name = new String(ByteUtilsBE.substring(bytes, pos + 1, nameLength));
 		}
 	}
 
@@ -186,12 +188,17 @@ public class MapPositions extends MapObject {
 
 	public void addPosition(MapPosition pos) {
 		positions.add(pos);
+		pos.setParent(this);
 	}
 
 	public void removePosition(String pos) {
 		MapPosition pos2 = findPosByString(pos);
 		if (pos2 != null)
 			positions.remove(pos2);
+	}
+	
+	public void removePosition(MapPosition pos) {
+		positions.remove(pos);
 	}
 
 	private MapPosition findPosByString(String toString) {
@@ -211,7 +218,7 @@ public class MapPositions extends MapObject {
 			bytes.write(new byte[] { (byte) (posBytes.length) });
 			bytes.write(posBytes);
 		}
-		content.write(ByteUtils.intToBytes(positions.size()));
+		content.write(ByteUtilsBE.intToBytes(positions.size()));
 		content.write(bytes.toByteArray());
 		if (this.name != null) {
 			content.write(new byte[] { (byte) name.length() });

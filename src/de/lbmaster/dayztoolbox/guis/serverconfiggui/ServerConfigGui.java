@@ -30,11 +30,11 @@ import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 
-import de.lbmaster.configparser.DayZConfig;
+import de.lbmaster.dayz.configparser.DayZConfig;
 import de.lbmaster.dayztoolbox.Constants;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
+import de.lbmaster.dayztoolbox.guis.ErrorDialog;
 import de.lbmaster.dayztoolbox.guis.maingui.MainGui;
-import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
 import de.lbmaster.dayztoolbox.utils.Config;
 import de.lbmaster.dayztoolbox.utils.NumberFormatterOverride;
 import javax.swing.JSplitPane;
@@ -330,7 +330,9 @@ public class ServerConfigGui extends CustomDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				saveValues(new File(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder) + "/" + configchoice.getSelectedItem()));
+				boolean success = saveValues(new File(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder) + "/" + configchoice.getSelectedItem()));
+				if (!success)
+					return;
 				close();
 				MainGui frame = MainGui.getFrame();
 				if (frame != null)
@@ -361,7 +363,7 @@ public class ServerConfigGui extends CustomDialog {
 		return -1;
 	}
 
-	private void saveValues(File file) {
+	private boolean saveValues(File file) {
 		System.out.println("Saving Values to: " + file.getAbsolutePath());
 		DayZConfig cfg = new DayZConfig(file);
 		try {
@@ -404,18 +406,31 @@ public class ServerConfigGui extends CustomDialog {
 		cfg.setInteger("logPlayers", boxLogPlayers.isSelected() ? 1 : 0);
 
 		try {
+
+			if (!cfg.canWrite()) {
+				ErrorDialog.displayError("The Config \"" + cfg.getFileLocation() + "\" can not be written ! Maybe the Server blocks the file access ?");
+				return false;
+			}
+
 			System.out.println("Save successful ? " + cfg.save());
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.err.println("Failed to write config " + cfg.getFileLocation());
 			System.out.println("Failed to write config " + cfg.getFileLocation());
 		}
+		return true;
 	}
 
 	private void loadFile() {
 		File f = new File(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder) + "/" + configchoice.getSelectedItem());
-		if (!f.exists())
+		if (!f.exists()) {
+			ErrorDialog.displayError("The File \"" + f + "\" does not exsist !");
 			return;
+		}
+		if (!f.canRead()) {
+			ErrorDialog.displayError("The File \"" + f + "\" can not be read !");
+			return;
+		}
 		Config.getConfig().setString(Constants.CONFIG_lastConfigLoaded, configchoice.getSelectedItem());
 		System.out.println("Loading File " + f.getAbsolutePath());
 		DayZConfig cfg = new DayZConfig(f);
@@ -461,7 +476,7 @@ public class ServerConfigGui extends CustomDialog {
 			boxLogPlayers.setSelected(cfg.getInteger("logPlayers", 0) == 1);
 		} catch (Exception e) {
 			e.printStackTrace();
-			new ErrorDialog("Failed to read the Config File! Check your config for any syntax error. " + e.getMessage() + "", true).setVisible(true);
+			ErrorDialog.displayError("Failed to read the Config File! Check your config for any syntax error. " + e.getMessage() + "");
 		}
 		contentPanel.revalidate();
 		contentPanel.repaint();

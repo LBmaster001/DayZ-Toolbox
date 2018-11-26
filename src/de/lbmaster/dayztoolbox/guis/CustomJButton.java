@@ -22,7 +22,7 @@ public class CustomJButton extends JButton {
 
 	protected CustomDialog dialog;
 
-	public CustomJButton(String text, final Class<? extends CustomDialog> class1) {
+	public CustomJButton(final String text, final Class<? extends CustomDialog> class1) {
 		super(text);
 
 		// setBorder(null);
@@ -41,7 +41,7 @@ public class CustomJButton extends JButton {
 			public void actionPerformed(ActionEvent e) {
 				if (dialog == null)
 					try {
-						dialog = class1.getDeclaredConstructor(String.class).newInstance(getText());
+						dialog = class1.getDeclaredConstructor(String.class).newInstance(text);
 					} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e1) {
 						e1.printStackTrace();
 					}

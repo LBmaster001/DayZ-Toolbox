@@ -17,7 +17,7 @@ import javax.swing.filechooser.FileFilter;
 
 import de.lbmaster.dayztoolbox.Constants;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
-import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
+import de.lbmaster.dayztoolbox.guis.ErrorDialog;
 import de.lbmaster.dayztoolbox.map.MapPosition;
 import de.lbmaster.dayztoolbox.map.MapPositions;
 import de.lbmaster.dayztoolbox.utils.Config;
@@ -164,7 +164,7 @@ public class MapExportDialog extends CustomDialog {
 		try {
 			Files.write(to.toPath(), sb.toString().getBytes());
 			setVisible(false);
-			new ErrorDialog("Player Spawns successfully written to: " + to.getAbsolutePath(), false).setVisible(true);
+			ErrorDialog.displayInfo("Player Spawns successfully written to: " + to.getAbsolutePath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -196,7 +196,7 @@ public class MapExportDialog extends CustomDialog {
 		try {
 			Files.write(to.toPath(), sb.toString().getBytes());
 			setVisible(false);
-			new ErrorDialog("Event Spawns successfully written to: " + to.getAbsolutePath(), false).setVisible(true);
+			ErrorDialog.displayInfo("Event Spawns successfully written to: " + to.getAbsolutePath());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

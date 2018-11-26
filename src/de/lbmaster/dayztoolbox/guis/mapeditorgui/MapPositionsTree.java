@@ -5,6 +5,7 @@ import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -34,7 +34,6 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 	private List<MapPositions> positions;
 	private JTree jtree;
 	private MapJPanel mapRenderer;
-	private CustomJTreeRenderer treeRenderer;
 
 	public MapPositionsTree(MapFile mapFile) {
 		super();
@@ -84,14 +83,14 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 		System.out.println("InitPositions");
 		this.positions = mapFile.getAllPositions();
 		System.out.println("Positionscount: " + positions.size());
-		DefaultMutableTreeNode mainRoot = new DefaultMutableTreeNode("ROOT");
+		CustomTreeNode mainRoot = new CustomTreeNode("ROOT");
 		for (MapPositions pos : positions) {
 			String name = pos.getDisplayName();
-			DefaultMutableTreeNode root = new DefaultMutableTreeNode(name);
+			CustomTreeNode root = new CustomTreeNode(pos, name);
 			boolean add = false;
 			for (MapPosition position : pos.getPositions()) {
 				System.out.println(position.toString());
-				DefaultMutableTreeNode child = new DefaultMutableTreeNode(position.toString());
+				CustomTreeNode child = new CustomTreeNode(position, position.toString());
 				root.add(child);
 				add = true;
 			}
@@ -105,7 +104,7 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 		jtree.addTreeExpansionListener(this);
 		jtree.setRootVisible(false);
 		// jtree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		jtree.setCellRenderer(treeRenderer = new CustomJTreeRenderer(loadIcon("parent.png"), loadIcon("leaf.png")));
+		jtree.setCellRenderer(new CustomJTreeRenderer(loadIcon("parent.png"), loadIcon("leaf.png")));
 		setViewportView(jtree);
 		revalidate();
 	}
@@ -142,47 +141,50 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 	}
 
 	public void addPosition(MapPosition position, MapJPanel mappanel) {
-		if (treeRenderer != null) {
-			Map<DefaultMutableTreeNode, Boolean> selectedNodes = treeRenderer.getLastSelections();
-			Map<DefaultMutableTreeNode, Boolean> selectedNodesCopy = new HashMap<DefaultMutableTreeNode, Boolean>();
-			selectedNodesCopy.putAll(selectedNodes);
-			if (selectedNodesCopy.size() == 0) {
-				System.out.println("No nodes Selected");
-				openCreateCategoryDialog(position, mappanel);
-				return;
-			}
-			DefaultMutableTreeNode selectedNode = null;
-			for (Entry<DefaultMutableTreeNode, Boolean> entry : selectedNodesCopy.entrySet()) {
-				if (entry.getKey() != null) {
-					selectedNode = entry.getKey();
-					break;
-				}
-			}
-			if (selectedNode == null) {
-				System.out.println("No node found !");
-				return;
-			}
-			System.out.println("Found selected Node " + selectedNode.getChildCount());
-			String positionsName = selectedNode.getPath()[1].toString();
-			MapPositions pos = mapRenderer.getMapFile().getPositionsByDisplayName(positionsName);
-			if (pos == null)
-				return;
-			pos.addPosition(position);
-			DefaultMutableTreeNode parent = selectedNode;
-			if (!selectedNodesCopy.get(selectedNode)) {
-				parent = ((DefaultMutableTreeNode) selectedNode.getParent());
-			}
-			parent.add(new DefaultMutableTreeNode(position.toString()));
-			((DefaultTreeModel) jtree.getModel()).reload();
-			TreePath path = new TreePath(selectedNode.getPath());
-			jtree.expandPath(path);
-			jtree.addSelectionPath(path);
+		int[] selectedNodes = jtree.getSelectionRows();
 
-			mapRenderer.onlyRepaint();
-
+		Map<CustomTreeNode, Boolean> selectedNodesCopy = new HashMap<CustomTreeNode, Boolean>();
+		for (int i : selectedNodes) {
+			TreeNode node = ((TreeNode) jtree.getPathForRow(i).getLastPathComponent());
+			System.out.println(node.toString() + " Parent: " + node.getParent().toString());
+			selectedNodesCopy.put((CustomTreeNode) node, node.getParent() != null && node.getParent().toString().equals("ROOT"));
 		}
+		if (selectedNodesCopy.size() == 0) {
+			System.out.println("No nodes Selected");
+			openCreateCategoryDialog(position, mappanel);
+			return;
+		}
+		CustomTreeNode selectedNode = null;
+		for (Entry<CustomTreeNode, Boolean> entry : selectedNodesCopy.entrySet()) {
+			if (entry.getKey() != null) {
+				selectedNode = entry.getKey();
+				break;
+			}
+		}
+		if (selectedNode == null) {
+			System.out.println("No node found !");
+			return;
+		}
+		System.out.println("Found selected Node " + selectedNode.getChildCount());
+		String positionsName = selectedNode.getPath()[1].toString();
+		MapPositions pos = mapRenderer.getMapFile().getPositionsByDisplayName(positionsName);
+		if (pos == null)
+			return;
+		pos.addPosition(position);
+		CustomTreeNode parent = selectedNode;
+		if (!selectedNodesCopy.get(selectedNode)) {
+			parent = ((CustomTreeNode) selectedNode.getParent());
+		}
+		parent.add(new CustomTreeNode(position, position.toString()));
+		((DefaultTreeModel) jtree.getModel()).reload();
+		TreePath path = new TreePath(selectedNode.getPath());
+		jtree.expandPath(path);
+		jtree.addSelectionPath(path);
+
+		mapRenderer.onlyRepaint();
+
 	}
-	
+
 	private void openCreateCategoryDialog(MapPosition pos, MapJPanel mappanel) {
 		MapCreateCategoryGui createGui = new MapCreateCategoryGui(mappanel, pos);
 		createGui.setVisible(true);
@@ -191,53 +193,53 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 
 	private void keyDeletePress() {
 		System.out.println("Key Typed");
-		if (treeRenderer != null) {
-			Map<DefaultMutableTreeNode, Boolean> selectedNodes = treeRenderer.getLastSelections();
-			Map<DefaultMutableTreeNode, Boolean> selectedNodesCopy = new HashMap<DefaultMutableTreeNode, Boolean>();
-			selectedNodesCopy.putAll(selectedNodes);
-			for (Entry<DefaultMutableTreeNode, Boolean> entry : selectedNodesCopy.entrySet()) {
-				DefaultMutableTreeNode selectedNode = entry.getKey();
-				boolean isParent = entry.getValue();
-				if (selectedNode == null)
-					return;
-				System.out.println("Found selected Node " + selectedNode.getChildCount());
-				if (isParent) {
-					System.out.println("MapPositions");
-					// Is a MapPositionS type
-					String positionsName = selectedNode.getUserObject().toString();
-					MapPositions pos = mapRenderer.getMapFile().getPositionsByDisplayName(positionsName);
-					if (pos == null)
-						return;
-					mapRenderer.getMapFile().removeMapObject(pos);
-					TreeNode root = selectedNode.getParent();
-					System.out.println(root.getChildCount());
-					selectedNode.removeFromParent();
-					System.out.println(root.getChildCount());
-					((DefaultTreeModel) jtree.getModel()).reload();
-					if (mapRenderer != null)
-						mapRenderer.removePositionsDraw(pos);
-				} else {
-					// Is a single MapPosition
-					System.out.println("single MapPosition");
-					System.out.println("PosName: " + selectedNode.getUserObject().toString());
-					String positionsName = ((DefaultMutableTreeNode)selectedNode.getParent()).getUserObject().toString();
-					MapPositions pos = mapRenderer.getMapFile().getPositionsByDisplayName(positionsName);
-					System.out.println("#" + positionsName + "#");
-					if (pos == null)
-						return;
-					positionsName = selectedNode.getUserObject().toString();
-					System.out.println("#" + positionsName + "#");
-					pos.removePosition(positionsName);
-					TreeNode root = selectedNode.getParent();
-					System.out.println(root.getChildCount());
-					selectedNode.removeFromParent();
-					System.out.println(root.getChildCount());
-					((DefaultTreeModel) jtree.getModel()).reload(root);
-				}
-			}
-			selectedNodes.clear();
-			mapRenderer.onlyRepaint();
+		int[] selectedNodes = jtree.getSelectionRows();
+
+		List<CustomTreeNode> selectedNodesCopy = new ArrayList<CustomTreeNode>();
+		for (int i : selectedNodes) {
+			TreeNode node = ((TreeNode) jtree.getPathForRow(i).getLastPathComponent());
+			System.out.println(node.toString() + " Parent: " + node.getParent().toString());
+			selectedNodesCopy.add((CustomTreeNode) node);
 		}
+
+		// selectedNodesCopy.putAll(selectedNodes);
+		for (CustomTreeNode entry : selectedNodesCopy) {
+			if (entry == null)
+				continue;
+			System.out.println("Found selected Node " + entry.getChildCount());
+			if (entry.isPositions()) {
+				System.out.println("MapPositions");
+				// Is a MapPositionS type
+				MapPositions pos = entry.getMapPositions();
+				if (pos == null)
+					continue;
+				mapRenderer.getMapFile().removeMapObject(pos);
+				TreeNode root = entry.getParent();
+				System.out.println(root.getChildCount());
+				entry.removeFromParent();
+				System.out.println(root.getChildCount());
+				((DefaultTreeModel) jtree.getModel()).reload();
+				if (mapRenderer != null)
+					mapRenderer.removePositionsDraw(pos);
+			} else if (entry.isPosition()) {
+				// Is a single MapPosition
+				System.out.println("single MapPosition");
+				System.out.println("PosName: " + entry.getMapPosition().getName());
+				MapPositions pos = entry.getMapPosition().getParent();
+				if (pos == null)
+					continue;
+				pos.removePosition(entry.getMapPosition());
+				TreeNode root = entry.getParent();
+				System.out.println(root.getChildCount());
+				entry.removeFromParent();
+				System.out.println(root.getChildCount());
+				((DefaultTreeModel) jtree.getModel()).reload(root);
+			} else {
+				System.out.println("Node is no Position or Positions ??");
+			}
+		}
+		// selectedNodes.clear();
+		mapRenderer.onlyRepaint();
 	}
 }
 
@@ -246,28 +248,15 @@ class CustomJTreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 1L;
 	private Icon parent, leaf;
 
-	private Map<DefaultMutableTreeNode, Boolean> lastSelections = new HashMap<DefaultMutableTreeNode, Boolean>();
-
 	public CustomJTreeRenderer(Icon parent, Icon leaf) {
 		this.parent = parent;
 		this.leaf = leaf;
 	}
 
-	public Map<DefaultMutableTreeNode, Boolean> getLastSelections() {
-		return lastSelections;
-	}
-
 	@Override
 	public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
 		super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
-		DefaultMutableTreeNode nodo = (DefaultMutableTreeNode) value;
-		synchronized (lastSelections) {
-			if (selected) {
-				lastSelections.put(nodo, nodo.getChildCount() > 0 || expanded);
-			} else {
-				lastSelections.remove(nodo);
-			}
-		}
+		CustomTreeNode nodo = (CustomTreeNode) value;
 		if (nodo.getChildCount() > 0 && !expanded) {
 			setIcon(parent);
 		} else {

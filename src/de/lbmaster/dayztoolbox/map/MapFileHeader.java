@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.lbmaster.dayztoolbox.utils.ByteUtils;
+import de.lbmaster.dayztoolbox.utils.ByteUtilsBE;
 
 public class MapFileHeader {
 
@@ -35,7 +35,7 @@ public class MapFileHeader {
 	public byte[] toBytes() throws IOException {
 		ByteArrayOutputStream buffer = new ByteArrayOutputStream(HEADER_SIZE);
 		buffer.write(version);
-		buffer.write(ByteUtils.intToBytes(headerLength));
+		buffer.write(ByteUtilsBE.intToBytes(headerLength));
 		buffer.write(reserved);
 		return buffer.toByteArray();
 		
@@ -48,14 +48,14 @@ public class MapFileHeader {
 	public List<MapObjectHeader> getHeaders() {
 		List<MapObjectHeader> headers = new ArrayList<MapObjectHeader>();
 		if (headerContent != null && headerContent.length > 0) {
-			short elementCount = ByteUtils.readShort(headerContent, 0);
+			short elementCount = ByteUtilsBE.readShort(headerContent, 0);
 			int index = 2;
 			int contentStart = getContentStart();
 			for (int i = 0; i < elementCount; i++) {
-				byte[] contentHead = ByteUtils.substring(headerContent, index, CONTENT_HEADER_SIZE);
+				byte[] contentHead = ByteUtilsBE.substring(headerContent, index, CONTENT_HEADER_SIZE);
 				index += CONTENT_HEADER_SIZE;
-				MapObjectType type = MapObjectType.getTypeById(ByteUtils.readShort(contentHead, 0));
-				long length = ByteUtils.readLong(contentHead, 2);
+				MapObjectType type = MapObjectType.getTypeById(ByteUtilsBE.readShort(contentHead, 0));
+				long length = ByteUtilsBE.readLong(contentHead, 2);
 				System.out.println(type.toString() + " Start: " + contentStart + " " + length);
 				headers.add(new MapObjectHeader(length, type, contentStart));
 				contentStart += length;
@@ -71,8 +71,8 @@ public class MapFileHeader {
 
 	private void readHeaderBytes(byte[] headerBytes) {
 		this.version = headerBytes[0];
-		this.headerLength = ByteUtils.readInt(headerBytes, 1);
-		this.reserved = ByteUtils.substring(headerBytes, 5, 3);
+		this.headerLength = ByteUtilsBE.readInt(headerBytes, 1);
+		this.reserved = ByteUtilsBE.substring(headerBytes, 5, 3);
 	}
 
 	private void readBytesFromFile(long start, byte[] array, File file) throws IOException {

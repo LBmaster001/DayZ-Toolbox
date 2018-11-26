@@ -84,6 +84,7 @@ public class MapCreateCategoryGui extends CustomDialog {
 				catname.replace(" ", "_");
 				MapPositions positions = new MapPositions();
 				positions.setName(catname);
+				pos.setParent(positions);
 				positions.addPosition(pos);
 				parent.getMapFile().addMapObject(positions);
 				parent.getMapEditorGui().getRightPanel().initPositions();

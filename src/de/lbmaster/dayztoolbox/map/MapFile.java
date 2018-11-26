@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
-import de.lbmaster.dayztoolbox.utils.ByteUtils;
+import de.lbmaster.dayztoolbox.utils.ByteUtilsBE;
 
 public class MapFile {
 
@@ -121,6 +121,7 @@ public class MapFile {
 	}
 
 	public void save(File file) throws IOException {
+		
 		FileOutputStream out = new FileOutputStream(file);
 		ByteArrayOutputStream content = new ByteArrayOutputStream();
 		contentHeaders.clear();
@@ -135,10 +136,10 @@ public class MapFile {
 		}
 		byte[] header = headerBuffer.toByteArray();
 		byte[] head = generateHead(header);
-		System.out.println("Head: " + ByteUtils.bytesToHex(head));
-		System.out.println("Header: " + ByteUtils.bytesToHex(header));
+		System.out.println("Head: " + ByteUtilsBE.bytesToHex(head));
+		System.out.println("Header: " + ByteUtilsBE.bytesToHex(header));
 		out.write(head);
-		out.write(ByteUtils.shortToBytes((short) contentHeaders.size()));
+		out.write(ByteUtilsBE.shortToBytes((short) contentHeaders.size()));
 		out.write(header);
 		out.write(content.toByteArray());
 		out.flush();
@@ -170,6 +171,18 @@ public class MapFile {
 		readContent();
 		readPositions = true;
 	}
+	
+	public boolean hasImages() throws IOException {
+		readHeader();
+		contentHeaders = header.getHeaders();
+		System.out.println("Content Headers: " + contentHeaders.size());
+		for (MapObjectHeader head : contentHeaders) {
+			if (head.getType().equals(MapObjectType.MAP_IMAGE))
+				return true;
+		}
+		return false;
+		
+	}
 
 	public void readContent() throws IOException {
 		readHeader();
@@ -181,7 +194,7 @@ public class MapFile {
 			long size = head.getContentSize();
 			System.out.println("Header: " + start + " " + size);
 			MapObject obj;
-			byte[] content = ByteUtils.substring(fileContent, (int) start, (int) size);
+			byte[] content = ByteUtilsBE.substring(fileContent, (int) start, (int) size);
 			switch (head.getType()) {
 			case MAP_IMAGE:
 				if (!readImages)

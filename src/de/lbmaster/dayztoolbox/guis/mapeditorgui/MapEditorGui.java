@@ -22,7 +22,7 @@ import com.jgoodies.forms.layout.RowSpec;
 import de.lbmaster.dayztoolbox.Constants;
 import de.lbmaster.dayztoolbox.MainClass;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
-import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
+import de.lbmaster.dayztoolbox.guis.ErrorDialog;
 import de.lbmaster.dayztoolbox.map.MapFile;
 import de.lbmaster.dayztoolbox.map.MapPositions;
 import de.lbmaster.dayztoolbox.utils.Config;
@@ -119,7 +119,7 @@ public class MapEditorGui extends CustomDialog {
 							contentPanel.revalidate();
 							revalidate();
 						} else {
-							displayError("No Map was loaded !");
+							ErrorDialog.displayError("No Map was loaded !");
 						}
 					}
 				}
@@ -183,14 +183,15 @@ public class MapEditorGui extends CustomDialog {
 							mapView.getMapFile().save(new File(textField.getText()));
 						} catch (IOException e) {
 							e.printStackTrace();
+							ErrorDialog.displayError("Failed to write MapFile ! " + e.getMessage());
 						}
-						displayInfo("File was saved successfuly to: " + mapView.getMapFile().getFile().getAbsolutePath());
+						ErrorDialog.displayInfo("File was saved successfuly to: " + mapView.getMapFile().getFile().getAbsolutePath());
 						return;
 					}
-					displayError("No MapFile found !");
+					ErrorDialog.displayError("No MapFile found !");
 					return;
 				}
-				displayError("No MapFile found !");
+				ErrorDialog.displayError("No MapFile found !");
 				return;
 			}
 		});
@@ -232,21 +233,20 @@ public class MapEditorGui extends CustomDialog {
 		if (new File(textField.getText()).exists())
 			load();
 		else {
-			displayError("Use the Map Creator to create a Map File or download my sample from: <a href=\"http://toast-teamspeak.de/dayztoolboxexamples/mapfileexample.mff\">mapfileexample.mff</a> and select it via the Browse... button.");
+			ErrorDialog.displayError("Use the Map Creator to create a Map File or download my sample from: <a href=\"http://toast-teamspeak.de/dayztoolboxexamples/mapfileexample.mff\">mapfileexample.mff</a> and select it via the Browse... button.");
 		}
 	}
-
-	private void displayError(String error) {
-		new ErrorDialog(error, true).setVisible(true);
+	
+	public void load(MapFile mf, boolean loadonlyImages) {
+		removeMapPanels();
+		mapView = new MapJPanel(mf, this, loadonlyImages);
+		textField.setText("");
+		addMapPanels();
+		
+		MainClass.checkMemory();
 	}
-
-	private void displayInfo(String info) {
-		new ErrorDialog(info, false).setVisible(true);
-	}
-
-	private void load() {
-		if (!new File(textField.getText()).exists())
-			return;
+	
+	private void removeMapPanels() {
 		System.out.println("Components: " + contentPanel.getComponentCount());
 		if (mapView != null) {
 			contentPanel.remove(mapView);
@@ -254,11 +254,11 @@ public class MapEditorGui extends CustomDialog {
 		}
 		if (rightPanel != null)
 			contentPanel.remove(rightPanel);
-
-		Config.getConfig().setString(Constants.CONFIG_lastMapFile, textField.getText());
 		contentPanel.revalidate();
 		revalidate();
-		mapView = new MapJPanel(textField.getText(), this);
+	}
+	
+	private void addMapPanels() {
 		contentPanel.add(mapView, "1, 1, 1, 1, fill, fill");
 		addComponentListener(mapView);
 
@@ -267,7 +267,15 @@ public class MapEditorGui extends CustomDialog {
 		contentPanel.add(rightPanel, "2, 1, 2, 1, fill, fill");
 		contentPanel.revalidate();
 		revalidate();
-		
+	}
+
+	public void load() {
+		if (!new File(textField.getText()).exists())
+			return;
+		removeMapPanels();
+		Config.getConfig().setString(Constants.CONFIG_lastMapFile, textField.getText());
+		mapView = new MapJPanel(new MapFile(textField.getText()), this);
+		addMapPanels();
 		MainClass.checkMemory();
 	}
 

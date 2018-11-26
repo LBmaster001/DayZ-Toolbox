@@ -13,7 +13,6 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.geom.AffineTransform;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,22 +44,28 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 	private int yDiff;
 	private Point startPoint;
 
-	public MapJPanel(String mapPath, MapEditorGui gui) {
-		loadImageAsync(mapPath);
+	public MapJPanel(MapFile mf, MapEditorGui gui) {
+		this(mf, gui, false);
+	}
+
+	public MapJPanel(MapFile mf, MapEditorGui gui, boolean loadonlyImages) {
+		loadImageAsync(mf, loadonlyImages);
 		initComponent();
 		this.gui = gui;
 		this.zoomer = true;
 	}
 
-	private void loadImageAsync(final String path) {
-		File file = new File(path);
-		mapFile = new MapFile(file);
+	private void loadImageAsync(final MapFile mf, final boolean loadonlyImages) {
+		mapFile = mf;
 		new Thread(new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					mapFile.readContent();
+					if (loadonlyImages)
+						mapFile.readImagesOnly();
+					else
+						mapFile.readContent();
 
 					System.out.println("Finished reading Image");
 				} catch (IOException e) {
@@ -120,7 +125,7 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 	public MapFile getMapFile() {
 		return mapFile;
 	}
-	
+
 	public MapEditorGui getMapEditorGui() {
 		return gui;
 	}
@@ -201,7 +206,7 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 		for (MapPositions positions : drawPositions) {
 			g2.setColor(positions.getColor());
 			for (MapPosition pos : positions.getPositions()) {
-				g2.drawRect((int) (pos.getX()- (4.0  / zoomFactor)), (int) getInvertedZPos(pos.getZ()+(4.0  / zoomFactor)), (int) (10.0 / zoomFactor), (int) (10.0 / zoomFactor));
+				g2.drawRect((int) (pos.getX() - (4.0 / zoomFactor)), (int) getInvertedZPos(pos.getZ() + (4.0 / zoomFactor)), (int) (10.0 / zoomFactor), (int) (10.0 / zoomFactor));
 			}
 		}
 		g2.setColor(color2);
@@ -279,7 +284,7 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 				double mapPositionX = (-this.xOffset + xRel) / zoomFactor;
 				double mapPositionZ = getInvertedZPos((-this.yOffset + yRel) / zoomFactor);
 
-				MapPosition pos = new MapPosition(mapPositionX, mapPositionZ);
+				MapPosition pos = new MapPosition(mapPositionX, mapPositionZ, null);
 				gui.getRightPanel().addPosition(pos, this);
 			}
 		}

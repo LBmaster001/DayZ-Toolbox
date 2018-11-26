@@ -21,6 +21,7 @@ import de.lbmaster.dayztoolbox.MainClass;
 import de.lbmaster.dayztoolbox.guis.economyconfiggui.CustomEconomyGuiButton;
 import de.lbmaster.dayztoolbox.guis.mapcreatorgui.CustomMapGuiButton;
 import de.lbmaster.dayztoolbox.guis.mapeditorgui.CustomMapEditorGuiButton;
+import de.lbmaster.dayztoolbox.guis.playerdb.CustomPlayerDBGuiButton;
 import de.lbmaster.dayztoolbox.guis.serverconfiggui.CustomServerGuiButton;
 import de.lbmaster.dayztoolbox.guis.settingsgui.CustomSettingsGuiButton;
 import de.lbmaster.dayztoolbox.guis.tips.CustomTipsGuiButton;
@@ -60,6 +61,7 @@ public class MainGui extends JFrame {
 				RowSpec.decode("75px"),
 				RowSpec.decode("75px"),
 				RowSpec.decode("75px"),
+				RowSpec.decode("75px"),
 				RowSpec.decode("75px"),}));
 
 		JLabel lblDayzModdingToolbox = new JLabel("DayZ Modding Toolbox");
@@ -89,6 +91,9 @@ public class MainGui extends JFrame {
 
 		btnmapeditor = new CustomMapEditorGuiButton();
 		contentPane.add(btnmapeditor, "1, 6, 2, 1, default, fill");
+		
+		btnmapeditor = new CustomPlayerDBGuiButton();
+		contentPane.add(btnmapeditor, "1, 7, 2, 1, default, fill");
 
 		updateButtons();
 		pack();

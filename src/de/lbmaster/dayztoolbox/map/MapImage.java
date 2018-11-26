@@ -9,8 +9,8 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 import de.lbmaster.dayztoolbox.MainClass;
-import de.lbmaster.dayztoolbox.guis.mapcreatorgui.ErrorDialog;
-import de.lbmaster.dayztoolbox.utils.ByteUtils;
+import de.lbmaster.dayztoolbox.guis.ErrorDialog;
+import de.lbmaster.dayztoolbox.utils.ByteUtilsBE;
 
 public class MapImage extends MapObject {
 
@@ -30,7 +30,7 @@ public class MapImage extends MapObject {
 		img = new BufferedImage(xSlices * maxSliceSize, ySlices * maxSliceSize, BufferedImage.TYPE_INT_RGB);
 		} catch (Exception e) {
 			e.printStackTrace();
-			new ErrorDialog("Out of Memory error! " + (MainClass.is64BitJVM() ? "You are not using the 64bit Java Version. Download the 64bit Version to resolve this issue" : ""), true);
+			ErrorDialog.displayError("Out of Memory error! " + (MainClass.is64BitJVM() ? "You are not using the 64bit Java Version. Download the 64bit Version to resolve this issue" : ""));
 			return;
 		}
 		Graphics imgGraphics = img.createGraphics();
@@ -39,9 +39,9 @@ public class MapImage extends MapObject {
 		
 		for (byte x = 0; x < xSlices; x++) {
 			for (byte y = 0; y < ySlices; y++) {
-				int size = ByteUtils.readInt(imageBytes, pos);
+				int size = ByteUtilsBE.readInt(imageBytes, pos);
 				pos += 4;
-				final byte[] content = ByteUtils.substring(imageBytes, pos, size);
+				final byte[] content = ByteUtilsBE.substring(imageBytes, pos, size);
 				pos += size;
 				final ByteArrayInputStream contentStream = new ByteArrayInputStream(content);
 //				System.out.println("Reading image... " + content.length);
@@ -84,7 +84,7 @@ public class MapImage extends MapObject {
 				ImageIO.write(imgSlices[x][y], "JPEG", contentStream);
 				int size = contentStream.size();
 				System.out.println("ImageSize: " + size);
-				bytes.write(ByteUtils.intToBytes(size));
+				bytes.write(ByteUtilsBE.intToBytes(size));
 				bytes.write(contentStream.toByteArray());
 
 			}
