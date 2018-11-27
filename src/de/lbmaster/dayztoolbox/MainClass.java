@@ -22,7 +22,7 @@ public class MainClass {
 
 	public static final int mainVersion = 0;
 	public static final int buildVersion = 0;
-	public static final int buildId = 11245;
+	public static final int buildId = 11311;
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {

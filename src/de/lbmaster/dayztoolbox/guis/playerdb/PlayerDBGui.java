@@ -46,6 +46,7 @@ import de.lbmaster.dayztoolbox.guis.ErrorDialog;
 import de.lbmaster.dayztoolbox.guis.mapeditorgui.MapEditorGui;
 import de.lbmaster.dayztoolbox.map.MapFile;
 import de.lbmaster.dayztoolbox.map.MapPositions;
+import de.lbmaster.dayztoolbox.utils.ByteUtilsBE;
 import de.lbmaster.dayztoolbox.utils.Config;
 
 public class PlayerDBGui extends CustomDialog {
@@ -161,8 +162,9 @@ public class PlayerDBGui extends CustomDialog {
 					JsonObject jsonRoot = new JsonObject();
 					JsonArray jsonArr = new JsonArray();
 					jsonRoot.add("Entries", jsonArr);
+					DefaultTableModel model = (DefaultTableModel) table.getModel();
+					model.getDataVector().clear();
 					while (data.next()) {
-						DefaultTableModel model = (DefaultTableModel) table.getModel();
 						model.addRow(new Object[] { data.getInt("Id"), (data.getInt("Lock") == 1), (data.getInt("Alive") == 1), data.getString("UID") });
 						JsonObject obj = new JsonObject();
 						obj.addProperty("Id", data.getInt("Id"));
@@ -171,8 +173,9 @@ public class PlayerDBGui extends CustomDialog {
 						obj.addProperty("UID", data.getString("UID"));
 						obj.addProperty("Data", Base64.getEncoder().encodeToString(data.getBytes("Data")));
 						jsonArr.add(obj);
+						System.out.println(ByteUtilsBE.bytesToHex(data.getBytes("Data")));
 					}
-//					System.err.println("Player DB:\n" + jsonRoot.toString());
+					System.err.println("Player DB:\n" + jsonRoot.toString());
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 					ErrorDialog.displayError("Failed to load Data from DB! " + e1.getMessage());

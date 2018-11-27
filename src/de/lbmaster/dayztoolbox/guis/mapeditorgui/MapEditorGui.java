@@ -229,7 +229,7 @@ public class MapEditorGui extends CustomDialog {
 	}
 
 	public void loadMe() {
-		System.out.println("loading");
+		textField.setText(Config.getConfig().getString(Constants.CONFIG_lastMapFile, textField.getText()));
 		if (new File(textField.getText()).exists())
 			load();
 		else {

@@ -101,7 +101,7 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 					int lastInt = mapImage.getReadImagesCount();
 					while (!mapImage.hasFullyReadContent()) {
 						int count = mapImage.getReadImagesCount();
-						if (count != lastInt && getParent().isVisible()) {
+						if (count != lastInt && getParent() != null && getParent().isVisible()) {
 							onlyRepaint();
 						}
 						lastInt = count;
@@ -214,7 +214,9 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 	}
 
 	private double getInvertedZPos(double y) {
-		return 15360.0 - y;
+		if (mapImage == null || mapImage.getImage() == null)
+			return -1;
+		return ((double) mapImage.getImage().getHeight()) - y;
 	}
 
 	private double clampXOffset(double offset) {

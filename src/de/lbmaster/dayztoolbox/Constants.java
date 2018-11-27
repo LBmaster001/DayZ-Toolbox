@@ -11,6 +11,8 @@ public class Constants {
 	public static final String CONFIG_arma3tools = "arma3tools";
 	public static final String CONFIG_dayzclient = "dayzclientfolder";
 	public static final String CONFIG_pal2pace = "pal2pace";
+	public static final String CONFIG_lastmapfolder = "lastmapfolder";
+	public static final String CONFIG_defaultmapfolderUsed = "lastmapfolderused";
 
 	public static final String CONFIG_reminderat = "reminder";
 	public static final String CONFIG_lastMapFile = "lastMapFile";

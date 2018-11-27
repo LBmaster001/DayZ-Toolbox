@@ -8,23 +8,32 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Scanner;
 
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileFilter;
 
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.FormSpecs;
 import com.jgoodies.forms.layout.RowSpec;
 
 import de.lbmaster.dayztoolbox.Constants;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
 import de.lbmaster.dayztoolbox.guis.ErrorDialog;
+import de.lbmaster.dayztoolbox.guis.mapeditorgui.MapEditorGui;
 import de.lbmaster.dayztoolbox.map.MapFile;
 import de.lbmaster.dayztoolbox.map.MapImage;
 import de.lbmaster.dayztoolbox.utils.Config;
@@ -39,16 +48,18 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 	private Thread runningThread = null;
 	private boolean stop = false;
 	private JButton okButton;
+	private JCheckBox chckbxDefaultMap;
 
 	private JProgressBar progressBar_1, progressBar_2, progressBar_3, progressBar_4, progressBar;
 
 	public MapCreatorGui(String title) {
 		super(title);
-		setBounds(150, 130, 450, 310);
+		setBounds(150, 130, 650, 345);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
-		contentPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("120px"), ColumnSpec.decode("pref:grow"), }, new RowSpec[] { RowSpec.decode("50dlu"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), }));
+		contentPanel.setLayout(new FormLayout(new ColumnSpec[] { ColumnSpec.decode("120px"), ColumnSpec.decode("pref:grow"), ColumnSpec.decode("100px"), },
+				new RowSpec[] { RowSpec.decode("50dlu"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), RowSpec.decode("30px"), FormSpecs.RELATED_GAP_ROWSPEC, FormSpecs.DEFAULT_ROWSPEC, }));
 
 		JLabel lblMapCreatorGui = new JLabel("Map Creator GUI");
 		lblMapCreatorGui.setHorizontalAlignment(SwingConstants.CENTER);
@@ -60,7 +71,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 		contentPanel.add(lblAddonsFound, "1, 2");
 
 		progressBar = new JProgressBar();
-		contentPanel.add(progressBar, "2, 2");
+		contentPanel.add(progressBar, "2, 2, 2, 1");
 
 		JLabel lblPboUnpacked = new JLabel("PBO Unpacked ");
 		lblPboUnpacked.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -68,7 +79,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 
 		progressBar_1 = new JProgressBar();
 		progressBar_1.setMaximum(1000);
-		contentPanel.add(progressBar_1, "2, 3");
+		contentPanel.add(progressBar_1, "2, 3, 2, 1");
 
 		JLabel lblImagesConverted = new JLabel("Images Converted ");
 		lblImagesConverted.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -76,7 +87,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 
 		progressBar_2 = new JProgressBar();
 		progressBar_2.setMaximum(1000);
-		contentPanel.add(progressBar_2, "2, 4");
+		contentPanel.add(progressBar_2, "2, 4, 2, 1");
 
 		JLabel lblImagesMerged = new JLabel("Images Merged ");
 		lblImagesMerged.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -84,14 +95,86 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 
 		progressBar_3 = new JProgressBar();
 		progressBar_3.setMaximum(1000);
-		contentPanel.add(progressBar_3, "2, 5");
+		contentPanel.add(progressBar_3, "2, 5, 2, 1");
 
 		JLabel lblImageSaved = new JLabel("Image Saved ");
 		lblImageSaved.setHorizontalAlignment(SwingConstants.RIGHT);
 		contentPanel.add(lblImageSaved, "1, 6");
 
 		progressBar_4 = new JProgressBar();
-		contentPanel.add(progressBar_4, "2, 6");
+		contentPanel.add(progressBar_4, "2, 6, 2, 1");
+
+		chckbxDefaultMap = new JCheckBox("Default Map");
+		chckbxDefaultMap.setSelected(Config.getConfig().getBoolean(Constants.CONFIG_defaultmapfolderUsed, true));
+		contentPanel.add(chckbxDefaultMap, "1, 8");
+
+		final JButton btnBrowse = new JButton("Browse...");
+		contentPanel.add(btnBrowse, "3, 8");
+
+		textField = new JTextField(Config.getConfig().getString(Constants.CONFIG_dayzclient) + "/Addons" + "/worlds_chernarusplus_data.pbo");
+		if (Config.getConfig().getString(Constants.CONFIG_lastmapfolder) != null && !chckbxDefaultMap.isSelected()) {
+			textField.setText(Config.getConfig().getString(Constants.CONFIG_lastmapfolder));
+			textField.setEditable(true);
+			chckbxDefaultMap.setSelected(false);
+			btnBrowse.setEnabled(true);
+		} else {
+			textField.setEditable(false);
+			btnBrowse.setEnabled(false);
+			chckbxDefaultMap.setSelected(true);
+		}
+		contentPanel.add(textField, "2, 8, fill, default");
+		textField.setColumns(10);
+
+		btnBrowse.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setDialogTitle("Browse...");
+				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				chooser.setFileFilter(new FileFilter() {
+
+					@Override
+					public String getDescription() {
+						return ".pbo";
+					}
+
+					@Override
+					public boolean accept(File f) {
+						return f != null && (f.getName().endsWith(".pbo") || f.isDirectory());
+					}
+				});
+				chooser.setBounds(252, 41, 50, 19);
+				String lastFile = textField.getText();
+				chooser.setCurrentDirectory(new File(lastFile));
+				getContentPane().add(chooser);
+
+				int returnVal = chooser.showOpenDialog(MapCreatorGui.this);
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					File folder = chooser.getSelectedFile();
+					lastFile = folder.getAbsolutePath().replace("\\", "/");
+					textField.setText(lastFile);
+					Config.getConfig().setString(Constants.CONFIG_lastmapfolder, lastFile);
+				}
+			}
+		});
+
+		chckbxDefaultMap.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Config.getConfig().setBoolean(Constants.CONFIG_defaultmapfolderUsed, chckbxDefaultMap.isSelected());
+				if (!chckbxDefaultMap.isSelected()) {
+					textField.setEditable(true);
+					btnBrowse.setEnabled(true);
+					textField.setText(Config.getConfig().getString(Constants.CONFIG_lastmapfolder, ""));
+				} else {
+					textField.setEditable(false);
+					btnBrowse.setEnabled(false);
+					textField.setText(Config.getConfig().getString(Constants.CONFIG_dayzclient) + "/Addons" + "/worlds_chernarusplus_data.pbo");
+				}
+			}
+		});
 
 		JPanel buttonPane = new JPanel();
 		buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT));
@@ -133,6 +216,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 	}
 
 	private boolean displayPBOProcess = false;
+	private JTextField textField;
 
 	private void asyncProcessing() {
 		runningThread = new Thread(new Runnable() {
@@ -141,12 +225,19 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 			public void run() {
 				okButton.setEnabled(false);
 				String clientFolder = Config.getConfig().getString(Constants.CONFIG_dayzclient);
+				if (!chckbxDefaultMap.isSelected()) {
+					Config.getConfig().setString(Constants.CONFIG_lastmapfolder, textField.getText());
+					clientFolder = Config.getConfig().getString(Constants.CONFIG_lastmapfolder);
+				}
 				if (clientFolder == null) {
 					progressBar.setValue(0);
 					ErrorDialog.displayError("DayZ Client Folder not set! Go to Settings and set the DayZ Client Folder value");
 					return;
 				}
-				File addons = new File(clientFolder + "/Addons");
+				if (clientFolder.endsWith(".pbo")) {
+					clientFolder = new File(clientFolder).getParent();
+				}
+				File addons = new File(clientFolder + (clientFolder.toLowerCase().endsWith("addons") ? "" : "/Addons"));
 				if (!addons.exists()) {
 					progressBar.setValue(50);
 					ErrorDialog.displayError("Addons Folder not found !");
@@ -169,18 +260,40 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 					return;
 				}
 				File mapAddon = new File(addons.getAbsolutePath() + "/worlds_chernarusplus_data.pbo");
+				if (!chckbxDefaultMap.isSelected()) {
+					String filename = null;
+					for (File f : addons.listFiles()) {
+						if (f.getName().endsWith(".pbo")) {
+							try {
+								if (hasLayers(f)) {
+									filename = f.getName();
+									break;
+								}
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+						}
+					}
+					if (filename == null) {
+						ErrorDialog.displayError("Map File no found !");
+						return;
+					}
+					mapAddon = new File(addons.getAbsolutePath() + "/" + filename);
+				}
 				if (!mapAddon.exists()) {
 					progressBar_1.setValue(60);
-					ErrorDialog.displayError("Map File not found ! Please check your addons folder for \"worlds_chernarusplus_data.pbo\"");
+					ErrorDialog.displayError("Map File not found ! Please check your addons folder for \"" + mapAddon.getName() + "\"");
 					return;
 				}
 				if (stop)
 					return;
-				File mapFolder = new File(addons.getAbsolutePath() + "/worlds_chernarusplus_data");
+				String folderFile = mapAddon.getAbsolutePath();
+				File mapFolder = new File(folderFile.substring(0, folderFile.length() - 4));
+				System.out.println("MapFolder: " + mapFolder.getAbsolutePath());
 				if (!mapFolder.exists()) {
 					PBOManager pbomgr = new PBOManager(pboManagerPath);
 					displayPBOProcess = true;
-					displayPBOProcess(mapFolder.getAbsolutePath() + "/layers");
+					displayPBOProcess(findLayersFolder(mapFolder).getAbsolutePath());
 					pbomgr.exctract(mapFolder.getAbsolutePath());
 					displayPBOProcess = false;
 				}
@@ -204,7 +317,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				if (stop)
 					return;
 
-				File data_dir = new File(mapFolder.getAbsolutePath() + "/layers");
+				File data_dir = new File(findLayersFolder(mapFolder).getAbsolutePath());
 				if (!data_dir.exists()) {
 					progressBar_2.setValue(0);
 					ErrorDialog.displayError("Malformed Word Data Folder ! No Layers Folder found !");
@@ -224,7 +337,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				int conversions = 32 * 32;
 				int index = 0;
 				for (File f2 : data_dir.listFiles()) {
-					if (f2.getName().startsWith("s_")) {
+					if (f2.getName().toLowerCase().startsWith("s_")) {
 						String[] name = f2.getName().split("_");
 						int x = Integer.parseInt(name[1]);
 						int y = Integer.parseInt(name[2]);
@@ -269,11 +382,31 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 						if (stop)
 							return;
 					}
+					int xEnd = 0;
+					int lastColor = 0;
+					int same = 0;
+					for (int i = 0; i < Math.min(img.getWidth(), img.getHeight()); i++) {
+						int color = img.getRGB(i, i);
+						if (lastColor == color) {
+							same++;
+						} else {
+							xEnd = i;
+							same = 0;
+							lastColor = color;
+						}
+						if (same >= 128) {
+							System.out.println("Resizing Image to " + xEnd);
+							if (xEnd > 0)
+								img = img.getSubimage(0, 0, xEnd, xEnd);
+							break;
+						}
+					}
+
 					progressBar_3.setValue(progressBar_3.getMaximum());
 					g.dispose();
 					System.out.println("Writing Map to Disk ...");
 					final File mapFile = new File(data_dir.getAbsolutePath() + "/fullMap" + img.getWidth() + ".jpg");
-					final File mapFileFile = new File(PathFinder.findDayZToolBoxFolder() + "/mapfile.mff");
+					final File mapFileFile = new File(PathFinder.findDayZToolBoxFolder() + "/mapfile_" + mapFolder.getName() + ".mff");
 					if (mapFile.exists())
 						mapFile.delete();
 					long estimatedSize = estimateSize(data_dir.getAbsolutePath() + "/tempPNGs");
@@ -305,7 +438,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 					System.out.println("Tiles: " + xMax + "x" + yMax + " --> " + ((xMax + 1) * (yMax + 1)) + " Tiles");
 					if (stop)
 						return;
-					
+
 					MapFile map = new MapFile(mapFileFile);
 					if (mapFileFile.exists())
 						map.readPositionsOnly();
@@ -324,6 +457,47 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 			}
 		});
 		runningThread.start();
+	}
+
+	private static boolean hasLayers(File file) throws IOException {
+		FileInputStream inputStream = null;
+		Scanner sc = null;
+		try {
+			inputStream = new FileInputStream(file);
+			sc = new Scanner(inputStream, "UTF-8");
+			while (sc.hasNextLine()) {
+				String line = sc.nextLine();
+				if (line.toLowerCase().contains("layers\\s_000_000_lco.paa")) {
+					return true;
+				}
+			}
+			// note that Scanner suppresses exceptions
+			if (sc.ioException() != null) {
+				throw sc.ioException();
+			}
+		} finally {
+			if (inputStream != null) {
+				inputStream.close();
+			}
+			if (sc != null) {
+				sc.close();
+			}
+		}
+		return false;
+	}
+
+	private static File findLayersFolder(File folder) {
+		if (folder.isDirectory()) {
+			if (folder.getName().toLowerCase().endsWith("layers")) {
+				return folder;
+			}
+			for (File f : folder.listFiles()) {
+				File found = findLayersFolder(f);
+				if (found != null)
+					return found;
+			}
+		}
+		return null;
 	}
 
 	private void displayPBOProcess(final String layersFolder) {

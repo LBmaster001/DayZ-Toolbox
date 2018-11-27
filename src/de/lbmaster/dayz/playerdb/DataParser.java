@@ -26,14 +26,13 @@ public class DataParser {
 		int charID = data.getInt();
 		int dbID = data.getInt();
 		player.setIds(charID, dbID);
-		Data positionData = data.getData();
-		float x = positionData.getFloat();
-		float y = positionData.getFloat();
-		float z = positionData.getFloat();
+		data.skipBytes(4); // Unknown bytes
+		float x = data.getFloat();
+		float y = data.getFloat();
+		float z = data.getFloat();
 		player.setPosition(x, y, z);
-		positionData.skipBytes(2);
-		int stringLength = positionData.getByte();
-		String modelname = data.getString(stringLength);
+		data.skipBytes(2);
+		String modelname = data.getString();
 		player.setModel(modelname);
 		// System.out.println(modelname);
 		Data statsData = data.getData();
