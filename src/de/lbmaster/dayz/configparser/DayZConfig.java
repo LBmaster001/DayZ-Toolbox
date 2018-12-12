@@ -14,6 +14,7 @@ public class DayZConfig {
 	private static final int maxTabs = 9;
 
 	private String content;
+	private boolean read = false;
 	private boolean defaultcasesensitive = false;
 
 	private List<ConfigEntryRaw> entries = new ArrayList<ConfigEntryRaw>();
@@ -35,28 +36,38 @@ public class DayZConfig {
 	public DayZConfig(File file) {
 		this.file = file;
 	}
-	
+
 	public boolean canWrite() {
 		if (file.canWrite()) {
 			try {
 				FileOutputStream fw = new FileOutputStream(file);
 				fw.close();
 				return true;
-			} catch(Exception e) {
+			} catch (Exception e) {
 				return false;
 			}
 		}
 		return false;
 	}
 
+	public boolean isRead() {
+		return this.read;
+	}
+
 	public boolean read() throws IOException {
+		this.read = false;
 		if (!file.exists() || !file.canRead() || !file.isFile())
 			return false;
 		byte[] content = Files.readAllBytes(file.toPath());
-		this.content = new String(content);
+		return (readFromContent(new String(content)));
+	}
+
+	protected boolean readFromContent(String content) {
+		this.content = content;
 		this.entries.clear();
 		this.entries = ConfigEntryRaw.getConfigEntries(this.content, true);
 		sortEntries();
+		this.read = true;
 		return true;
 	}
 
@@ -64,18 +75,26 @@ public class DayZConfig {
 		return save(this.file);
 	}
 
+	public boolean saveIgnore() {
+		try {
+			return save(this.file);
+		} catch (IOException e) {
+		}
+		return false;
+	}
+
 	public boolean save(File file) throws IOException {
 		if (file == null || file.exists() ? (!file.canWrite() || !file.isFile()) : false)
 			return false;
-		System.out.println("OK (1/3) !");
+//		System.out.println("OK (1/3) !");
 		if (!file.exists() && !createFile(file))
 			return false;
-		System.out.println("OK (2/3) !");
+//		System.out.println("OK (2/3) !");
 		FileWriter fw = setUpWriter(file);
 		if (fw == null)
 			return false;
-		System.out.println("OK (3/3) !");
-		displayEntries(entries);
+//		System.out.println("OK (3/3) !");
+		// displayEntries(entries);
 		for (ConfigEntryRaw entry : entries) {
 			fw.write(generateEntryString(entry, ""));
 		}
@@ -92,6 +111,10 @@ public class DayZConfig {
 
 	public String getFileLocation() {
 		return file.getAbsolutePath();
+	}
+
+	public File getFile() {
+		return file;
 	}
 
 	private String generateEntryString(ConfigEntryRaw entry, String prefix) {
@@ -153,14 +176,9 @@ public class DayZConfig {
 		return sb.toString();
 	}
 
-	private FileWriter setUpWriter(File file) {
-		try {
-			FileWriter fw = new FileWriter(file);
-			return fw;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return null;
-		}
+	private FileWriter setUpWriter(File file) throws IOException {
+		FileWriter fw = new FileWriter(file);
+		return fw;
 	}
 
 	private boolean createFile(File file) {

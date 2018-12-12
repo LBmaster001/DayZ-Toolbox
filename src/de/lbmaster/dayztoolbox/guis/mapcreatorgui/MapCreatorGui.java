@@ -10,7 +10,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Scanner;
 
 import javax.imageio.ImageIO;
@@ -33,7 +32,6 @@ import com.jgoodies.forms.layout.RowSpec;
 import de.lbmaster.dayztoolbox.Constants;
 import de.lbmaster.dayztoolbox.guis.CustomDialog;
 import de.lbmaster.dayztoolbox.guis.ErrorDialog;
-import de.lbmaster.dayztoolbox.guis.mapeditorgui.MapEditorGui;
 import de.lbmaster.dayztoolbox.map.MapFile;
 import de.lbmaster.dayztoolbox.map.MapImage;
 import de.lbmaster.dayztoolbox.utils.Config;
@@ -54,7 +52,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 
 	public MapCreatorGui(String title) {
 		super(title);
-		setBounds(150, 130, 650, 345);
+		setSize(650, 345);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -105,15 +103,15 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 		contentPanel.add(progressBar_4, "2, 6, 2, 1");
 
 		chckbxDefaultMap = new JCheckBox("Default Map");
-		chckbxDefaultMap.setSelected(Config.getConfig().getBoolean(Constants.CONFIG_defaultmapfolderUsed, true));
+		chckbxDefaultMap.setSelected(Config.getConfig().getBoolean(Constants.CONFIG_DEFAULT_MAP_FOLDER, true));
 		contentPanel.add(chckbxDefaultMap, "1, 8");
 
 		final JButton btnBrowse = new JButton("Browse...");
 		contentPanel.add(btnBrowse, "3, 8");
 
-		textField = new JTextField(Config.getConfig().getString(Constants.CONFIG_dayzclient) + "/Addons" + "/worlds_chernarusplus_data.pbo");
-		if (Config.getConfig().getString(Constants.CONFIG_lastmapfolder) != null && !chckbxDefaultMap.isSelected()) {
-			textField.setText(Config.getConfig().getString(Constants.CONFIG_lastmapfolder));
+		textField = new JTextField(Config.getConfig().getString(Constants.CONFIG_LOCATION_DAYZCLIENT) + "/Addons" + "/worlds_chernarusplus_data.pbo");
+		if (Config.getConfig().getString(Constants.CONFIG_LAST_MAP_FOLDER) != null && !chckbxDefaultMap.isSelected()) {
+			textField.setText(Config.getConfig().getString(Constants.CONFIG_LAST_MAP_FOLDER));
 			textField.setEditable(true);
 			chckbxDefaultMap.setSelected(false);
 			btnBrowse.setEnabled(true);
@@ -154,7 +152,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 					File folder = chooser.getSelectedFile();
 					lastFile = folder.getAbsolutePath().replace("\\", "/");
 					textField.setText(lastFile);
-					Config.getConfig().setString(Constants.CONFIG_lastmapfolder, lastFile);
+					Config.getConfig().setString(Constants.CONFIG_LAST_MAP_FOLDER, lastFile);
 				}
 			}
 		});
@@ -163,15 +161,15 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Config.getConfig().setBoolean(Constants.CONFIG_defaultmapfolderUsed, chckbxDefaultMap.isSelected());
+				Config.getConfig().setBoolean(Constants.CONFIG_DEFAULT_MAP_FOLDER, chckbxDefaultMap.isSelected());
 				if (!chckbxDefaultMap.isSelected()) {
 					textField.setEditable(true);
 					btnBrowse.setEnabled(true);
-					textField.setText(Config.getConfig().getString(Constants.CONFIG_lastmapfolder, ""));
+					textField.setText(Config.getConfig().getString(Constants.CONFIG_LAST_MAP_FOLDER, ""));
 				} else {
 					textField.setEditable(false);
 					btnBrowse.setEnabled(false);
-					textField.setText(Config.getConfig().getString(Constants.CONFIG_dayzclient) + "/Addons" + "/worlds_chernarusplus_data.pbo");
+					textField.setText(Config.getConfig().getString(Constants.CONFIG_LOCATION_DAYZCLIENT) + "/Addons" + "/worlds_chernarusplus_data.pbo");
 				}
 			}
 		});
@@ -223,11 +221,12 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 
 			@Override
 			public void run() {
+				resetBars();
 				okButton.setEnabled(false);
-				String clientFolder = Config.getConfig().getString(Constants.CONFIG_dayzclient);
+				String clientFolder = Config.getConfig().getString(Constants.CONFIG_LOCATION_DAYZCLIENT);
 				if (!chckbxDefaultMap.isSelected()) {
-					Config.getConfig().setString(Constants.CONFIG_lastmapfolder, textField.getText());
-					clientFolder = Config.getConfig().getString(Constants.CONFIG_lastmapfolder);
+					Config.getConfig().setString(Constants.CONFIG_LAST_MAP_FOLDER, textField.getText());
+					clientFolder = Config.getConfig().getString(Constants.CONFIG_LAST_MAP_FOLDER);
 				}
 				if (clientFolder == null) {
 					progressBar.setValue(0);
@@ -248,7 +247,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				if (stop)
 					return;
 
-				String pboManagerPath = Config.getConfig().getString(Constants.CONFIG_pbomanager);
+				String pboManagerPath = Config.getConfig().getString(Constants.CONFIG_LOCATION_PBOMANAGER);
 				if (pboManagerPath == null) {
 					progressBar_1.setValue(0);
 					ErrorDialog.displayError("PBOManager Folder not set! Go to Settings and set the PBOManager Folder value");
@@ -293,8 +292,14 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 				if (!mapFolder.exists()) {
 					PBOManager pbomgr = new PBOManager(pboManagerPath);
 					displayPBOProcess = true;
-					displayPBOProcess(findLayersFolder(mapFolder).getAbsolutePath());
 					pbomgr.exctract(mapFolder.getAbsolutePath());
+					File layers = findLayersFolder(mapFolder);
+					if (layers == null) {
+						ErrorDialog.displayError("Error while processing Images. PBO not unpacked ?");
+						System.err.println("Map Folder: " + mapFolder);
+						return;
+					}
+					displayPBOProcess(layers.getAbsolutePath());
 					displayPBOProcess = false;
 				}
 				if (stop)
@@ -334,7 +339,7 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 						System.out.println("Temp Directory successfuly created");
 					}
 				}
-				int conversions = 32 * 32;
+				int conversions = getPendingConversionsCount(data_dir);
 				int index = 0;
 				for (File f2 : data_dir.listFiles()) {
 					if (f2.getName().toLowerCase().startsWith("s_")) {
@@ -431,13 +436,13 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 					}).start();
 					if (stop)
 						return;
-					ImageIO.write(img, "JPEG", mapFile);
-					System.out.println("Finished Writing Map to Disk ...");
-					System.out.println("Map Size:\t" + img.getWidth() + "x" + img.getHeight() + " --> " + (img.getWidth() * img.getHeight()) + " Pixels");
-					System.out.println("Map Space: " + mapFile.length() / 1024 / 1024 + "mb");
-					System.out.println("Tiles: " + xMax + "x" + yMax + " --> " + ((xMax + 1) * (yMax + 1)) + " Tiles");
-					if (stop)
-						return;
+//					ImageIO.write(img, "JPEG", mapFile);
+//					System.out.println("Finished Writing Map to Disk ...");
+//					System.out.println("Map Size:\t" + img.getWidth() + "x" + img.getHeight() + " --> " + (img.getWidth() * img.getHeight()) + " Pixels");
+//					System.out.println("Map Space: " + mapFile.length() / 1024 / 1024 + "mb");
+//					System.out.println("Tiles: " + xMax + "x" + yMax + " --> " + ((xMax + 1) * (yMax + 1)) + " Tiles");
+//					if (stop)
+//						return;
 
 					MapFile map = new MapFile(mapFileFile);
 					if (mapFileFile.exists())
@@ -445,10 +450,10 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 					map.removeAllImages();
 					map.addMapObject(new MapImage(img));
 					map.save();
-					Config.getConfig().setString(Constants.CONFIG_lastMapFile, mapFileFile.getAbsolutePath());
+					Config.getConfig().setString(Constants.CONFIG_LAST_MAP_FILE, mapFileFile.getAbsolutePath());
 					progressBar_4.setValue(progressBar_4.getMaximum());
 
-					ErrorDialog.displayInfo("Map successfully created. File was saved at: " + mapFile.getAbsolutePath());
+					ErrorDialog.displayInfo("Map successfully created. Open the Map Editor to view it");
 				} catch (IOException e) {
 					e.printStackTrace();
 					return;
@@ -457,6 +462,28 @@ public class MapCreatorGui extends CustomDialog implements ActionListener {
 			}
 		});
 		runningThread.start();
+	}
+	
+	private void resetBars() {
+		progressBar.setValue(0);
+		progressBar_1.setValue(0);
+		progressBar_2.setValue(0);
+		progressBar_3.setValue(0);
+		progressBar_4.setValue(0);
+	}
+	
+	private static int getPendingConversionsCount(File dir) {
+		if (dir == null)
+			return -1;
+		if (!dir.isDirectory())
+			return -1;
+		int i = 0;
+		for (File f2 : dir.listFiles()) {
+			if (f2.getName().toLowerCase().startsWith("s_")) {
+				i++;
+			}
+		}
+		return i;
 	}
 
 	private static boolean hasLayers(File file) throws IOException {

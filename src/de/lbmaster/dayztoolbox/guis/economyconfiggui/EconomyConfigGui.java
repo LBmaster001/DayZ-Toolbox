@@ -39,7 +39,7 @@ public class EconomyConfigGui extends CustomDialog {
 
 	public EconomyConfigGui(String title) {
 		super(title);
-		setBounds(150, 130, 550, 405);
+		setSize(550, 405);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.WEST);
@@ -58,8 +58,8 @@ public class EconomyConfigGui extends CustomDialog {
 		choice = new Choice();
 		contentPanel.add(choice, "2, 2, 2, 1");
 		refreshChoice();
-		int index = getItemIndex(Config.getConfig().getString(Constants.CONFIG_lastMissionSelected));
-		System.out.println("Choice index: " + index + " " + Config.getConfig().getString(Constants.CONFIG_lastMissionSelected));
+		int index = getItemIndex(Config.getConfig().getString(Constants.CONFIG_LAST_MISSION_SELECTED));
+		System.out.println("Choice index: " + index + " " + Config.getConfig().getString(Constants.CONFIG_LAST_MISSION_SELECTED));
 		if (index >= 0) {
 			choice.select(index);
 		}
@@ -68,7 +68,7 @@ public class EconomyConfigGui extends CustomDialog {
 			@Override
 			public void itemStateChanged(ItemEvent arg0) {
 				loadEconomyFile();
-				Config.getConfig().setString(Constants.CONFIG_lastMissionSelected, choice.getSelectedItem());
+				Config.getConfig().setString(Constants.CONFIG_LAST_MISSION_SELECTED, choice.getSelectedItem());
 			}
 		});
 
@@ -167,7 +167,7 @@ public class EconomyConfigGui extends CustomDialog {
 	}
 
 	private void refreshChoice() {
-		String dayzFolder = Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder);
+		String dayzFolder = Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER);
 		if (dayzFolder == null)
 			return;
 		choice.removeAll();
@@ -183,7 +183,7 @@ public class EconomyConfigGui extends CustomDialog {
 	}
 
 	private File getXMLFilePath() {
-		String dayzFolder = Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder);
+		String dayzFolder = Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER);
 		if (dayzFolder == null)
 			return null;
 		String folder = dayzFolder + "/mpmissions/" + choice.getSelectedItem();

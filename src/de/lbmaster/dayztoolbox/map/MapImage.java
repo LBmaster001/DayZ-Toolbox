@@ -27,16 +27,17 @@ public class MapImage extends MapObject {
 		byte xSlices = imageBytes[0];
 		byte ySlices = imageBytes[1];
 		try {
-		img = new BufferedImage(xSlices * maxSliceSize, ySlices * maxSliceSize, BufferedImage.TYPE_INT_RGB);
+			img = new BufferedImage(xSlices * maxSliceSize, ySlices * maxSliceSize, BufferedImage.TYPE_INT_RGB);
 		} catch (Exception e) {
+			System.err.println("Failed to create Image of Size: " + (xSlices * maxSliceSize) + "x" + (ySlices * maxSliceSize));
+			ErrorDialog.displayError("Out of Memory error! " + (!MainClass.is64BitJVM() ? "You are not using the 64bit Java Version. Download the 64bit Version to resolve this issue" : ""));
 			e.printStackTrace();
-			ErrorDialog.displayError("Out of Memory error! " + (MainClass.is64BitJVM() ? "You are not using the 64bit Java Version. Download the 64bit Version to resolve this issue" : ""));
 			return;
 		}
 		Graphics imgGraphics = img.createGraphics();
 
 		int pos = 2;
-		
+
 		for (byte x = 0; x < xSlices; x++) {
 			for (byte y = 0; y < ySlices; y++) {
 				int size = ByteUtilsBE.readInt(imageBytes, pos);
@@ -44,7 +45,7 @@ public class MapImage extends MapObject {
 				final byte[] content = ByteUtilsBE.substring(imageBytes, pos, size);
 				pos += size;
 				final ByteArrayInputStream contentStream = new ByteArrayInputStream(content);
-//				System.out.println("Reading image... " + content.length);
+				// System.out.println("Reading image... " + content.length);
 				BufferedImage img2 = ImageIO.read(contentStream);
 				synchronized (imgGraphics) {
 					imgGraphics.drawImage(img2, x * maxSliceSize, y * maxSliceSize, null);
@@ -65,11 +66,11 @@ public class MapImage extends MapObject {
 	public boolean hasFullyReadContent() {
 		return hasFullyRead;
 	}
-	
+
 	public int getReadImagesCount() {
 		return readImages;
 	}
-	
+
 	@Override
 	public byte[] toBytes() throws IOException {
 		if (this.imageBytes != null)
@@ -117,7 +118,7 @@ public class MapImage extends MapObject {
 		}
 		return imgSlices;
 	}
-	
+
 	public synchronized BufferedImage getImage() {
 		return img;
 	}

@@ -24,7 +24,7 @@ public class TipsGui extends CustomDialog {
 
 	public TipsGui(String title) {
 		super(title);
-		setBounds(100, 100, 600, 300);
+		setSize(600, 300);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);

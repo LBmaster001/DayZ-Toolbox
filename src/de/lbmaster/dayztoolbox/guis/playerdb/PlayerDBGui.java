@@ -8,6 +8,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -55,23 +56,14 @@ public class PlayerDBGui extends CustomDialog {
 	private JTable table;
 	private JTextField textField_dblocation;
 	private JLabel lblDbid, lblCharid, lblBiUid, lblPosition;
-	private JLabel lblBlood;
-	private JLabel lblHealth;
-	private JLabel lblStats;
+	private JLabel lblBlood, lblHealth, lblStats;
 	private JTable table_1;
-	private JTextField textField_blood;
-	private JTextField textField_health;
-	private JTextField textField_water;
-	private JTextField textField_energy;
-	private JLabel lblX;
-	private JLabel lblY;
-	private JLabel lblZ;
-	private JTextField textField_x;
-	private JTextField textField_y;
-	private JTextField textField_z;
+	private JTextField textField_blood, textField_health, textField_water, textField_energy;
+	private JLabel lblX, lblY, lblZ;
+	private JTextField textField_x, textField_y, textField_z;
 	private JLabel lblHealth_1;
 	private Choice choice;
-	
+
 	private PlayerInventoryTree invTree;
 
 	static {
@@ -80,7 +72,7 @@ public class PlayerDBGui extends CustomDialog {
 
 	public PlayerDBGui(String title) {
 		super(title);
-		setBounds(150, 130, 950, 800);
+		setSize(950, 800);
 		getContentPane().setLayout(
 				new FormLayout(new ColumnSpec[] { ColumnSpec.decode("100px"), ColumnSpec.decode("300px:grow"), ColumnSpec.decode("100px"), ColumnSpec.decode("75px"), }, new RowSpec[] { RowSpec.decode("50px"), RowSpec.decode("100px:grow"), RowSpec.decode("25px"), RowSpec.decode("400px"), }));
 
@@ -90,6 +82,7 @@ public class PlayerDBGui extends CustomDialog {
 		getContentPane().add(lblPlayerDbEditor, "1, 1, 4, 1");
 
 		table = new JTable(new CustomTableModel(new Object[] { "DBID", "Online", "Alive", "UID", "SteamID", "SteamName" }));
+		table.getTableHeader().setReorderingAllowed(false);
 		table.getSelectionModel().addListSelectionListener(new CustomSelectionModel(this));
 		table.addPropertyChangeListener(new PropertyChangeListener() {
 
@@ -148,10 +141,16 @@ public class PlayerDBGui extends CustomDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				if (table != null)
+					table.clearSelection();
 				String dblocation = textField_dblocation.getText();
 				File db = new File(dblocation);
 				if (!db.exists() || !db.isFile()) {
-					ErrorDialog.displayError("DB File does no exsist !");
+					ErrorDialog.displayError("DB File \"" + db.getAbsolutePath() + "\" does no exsist !");
+					return;
+				}
+				if (!db.getName().endsWith(".db")) {
+					ErrorDialog.displayError("Your selected file " + db.getAbsolutePath() + " is not a valid Database ! The players.db is located in SERVERFOLDER/mpmissions/MISSIONNAME.chernarusplus/storage_1/players.db");
 					return;
 				}
 				Config.getConfig().setString("lastplayerdblocation", db.getAbsolutePath());
@@ -171,14 +170,21 @@ public class PlayerDBGui extends CustomDialog {
 						obj.addProperty("Lock", data.getInt("Lock"));
 						obj.addProperty("Alive", data.getInt("Alive"));
 						obj.addProperty("UID", data.getString("UID"));
-						obj.addProperty("Data", Base64.getEncoder().encodeToString(data.getBytes("Data")));
+						byte[] dataBytes = data.getBytes("Data");
+						obj.addProperty("Data", Base64.getEncoder().encodeToString(dataBytes == null ? new byte[0] : dataBytes));
 						jsonArr.add(obj);
-						System.out.println(ByteUtilsBE.bytesToHex(data.getBytes("Data")));
+						System.out.println(ByteUtilsBE.bytesToHex(dataBytes == null ? new byte[0] : dataBytes));
 					}
 					System.err.println("Player DB:\n" + jsonRoot.toString());
 				} catch (SQLException e1) {
 					e1.printStackTrace();
 					ErrorDialog.displayError("Failed to load Data from DB! " + e1.getMessage());
+					System.err.println("File: " + db.getAbsolutePath());
+					try {
+						System.err.println("FileContent: " + Base64.getEncoder().encodeToString(Files.readAllBytes(db.toPath())));
+					} catch (IOException e2) {
+						e2.printStackTrace();
+					}
 				}
 
 			}
@@ -217,6 +223,7 @@ public class PlayerDBGui extends CustomDialog {
 		panel.add(lblStats);
 
 		table_1 = new JTable(new DefaultTableModel(new Object[] { "Stat", "Value" }, 0));
+		table_1.getTableHeader().setReorderingAllowed(false);
 		table_1.setBounds(743, 36, 181, 73);
 		panel.add(table_1);
 
@@ -294,15 +301,15 @@ public class PlayerDBGui extends CustomDialog {
 		invTree = new PlayerInventoryTree(null);
 		invTree.setBounds(10, 120, 306, 269);
 		panel.add(invTree);
-		
+
 		JButton btnDrawAllPositions = new JButton("Draw All Positions on map");
 		btnDrawAllPositions.setBounds(448, 29, 181, 23);
 		panel.add(btnDrawAllPositions);
 		btnDrawAllPositions.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String mapFile = Config.getConfig().getString(Constants.CONFIG_lastMapFile, null);
+				String mapFile = Config.getConfig().getString(Constants.CONFIG_LAST_MAP_FILE, null);
 				if (mapFile == null) {
 					ErrorDialog.displayError("No MapFile found ! Goto MapEditor and set a MapFile Path");
 					return;
@@ -327,7 +334,7 @@ public class PlayerDBGui extends CustomDialog {
 							gui.setVisible(true);
 							gui.requestFocus();
 							gui.load(mf, true);
-							
+
 						} else {
 							ErrorDialog.displayError("No Images found in MapFile " + mapFile + " !");
 							return;
@@ -356,7 +363,7 @@ public class PlayerDBGui extends CustomDialog {
 			}
 		}).start();
 	}
-	
+
 	/*
 	 * SurvivorF_Frida SurvivorF_Gabi SurvivorF_Helga SurvivorF_Irena
 	 * SurvivorF_Judy SurvivorF_Keiko SurvivorF_Lina SurvivorF_Maria
@@ -391,6 +398,8 @@ public class PlayerDBGui extends CustomDialog {
 
 	public void loadRow() {
 		int row = table.getSelectedRow();
+		if (row < 0)
+			return;
 		int dbid = (int) table.getModel().getValueAt(row, 0);
 		String uid = (String) table.getModel().getValueAt(row, 3);
 		System.out.println(uid + "  " + dbid);
@@ -405,6 +414,19 @@ public class PlayerDBGui extends CustomDialog {
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
 				byte[] playerData = rs.getBytes("Data");
+				if (playerData == null) {
+					lblCharid.setText("CharID: ");
+					textField_x.setText("");
+					textField_y.setText("");
+					textField_z.setText("");
+					DefaultTableModel model = (DefaultTableModel) table_1.getModel();
+					model.getDataVector().clear();
+					textField_blood.setText("");
+					textField_health.setText("");
+					textField_energy.setText("");
+					textField_water.setText("");
+					return;
+				}
 				DBPlayer player = new DataParser().loadDBPlayer(playerData, uid);
 				lblCharid.setText("CharID: " + player.getCharid());
 				textField_x.setText("" + player.getX());
@@ -421,7 +443,7 @@ public class PlayerDBGui extends CustomDialog {
 				textField_water.setText("" + player.getWater());
 
 				choice.select(player.getModel());
-				
+
 				invTree.init(player);
 				invTree.expandAllNodes();
 			}

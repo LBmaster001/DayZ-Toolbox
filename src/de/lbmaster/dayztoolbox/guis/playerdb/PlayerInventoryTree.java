@@ -1,5 +1,6 @@
 package de.lbmaster.dayztoolbox.guis.playerdb;
 
+import java.awt.Component;
 import java.net.URL;
 
 import javax.swing.Icon;
@@ -9,9 +10,11 @@ import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeCellRenderer;
 
 import de.lbmaster.dayz.playerdb.DBPlayer;
 import de.lbmaster.dayz.playerdb.Item;
+import de.lbmaster.dayztoolbox.guis.mapeditorgui.CustomTreeNode;
 import de.lbmaster.dayztoolbox.guis.mapeditorgui.MapPositionsTree;
 
 public class PlayerInventoryTree extends JScrollPane implements TreeExpansionListener {
@@ -46,6 +49,7 @@ public class PlayerInventoryTree extends JScrollPane implements TreeExpansionLis
 		if (jtree != null)
 			this.remove(jtree);
 		jtree = new JTree(mainRoot);
+		jtree.setCellRenderer(new CustomJTreeRenderer());
 		jtree.addTreeExpansionListener(this);
 		jtree.setRootVisible(false);
 		// jtree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -85,4 +89,20 @@ public class PlayerInventoryTree extends JScrollPane implements TreeExpansionLis
 	}
 
 	
+}
+
+class CustomJTreeRenderer extends DefaultTreeCellRenderer {
+
+	private static final long serialVersionUID = 1L;
+
+	@Override
+	public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+		super.getTreeCellRendererComponent(tree, value, selected, expanded, leaf, row, hasFocus);
+		DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+		Item item = (Item) node.getUserObject();
+		if (item != null) {
+			setIcon(HealthIndicators.getHealthImage(item.getHealth()));
+		}
+		return this;
+	}
 }

@@ -33,7 +33,7 @@ public class Data {
 	}
 	
 	public void skipToByte(byte b) {
-		int index = new String(content).indexOf((char) b, this.index.get());
+		int index = new String(content).indexOf(new String(new byte[] {b}), this.index.get());
 		if (index != -1)
 			this.index.set(index);
 	}
@@ -157,6 +157,31 @@ public class Data {
 	
 	public boolean nextByteIsEqualTo(byte b) {
 		return content[index.get()] == b;
+	}
+	
+	public int getNumber(int lengthIdentifierLength) {
+		int length = 0;
+		if (lengthIdentifierLength == 1)
+			length = getByte();
+		if (lengthIdentifierLength == 2)
+			length = getShort();
+		if (lengthIdentifierLength == 4)
+			length = getInt();
+
+		if (length == 1)
+			return getByte();
+		if (length == 2)
+			return getShort();
+		if (length == 4)
+			return getInt();
+		return -1;
+		
+	}
+	
+	public void rewind(int length) {
+		if (this.index.addAndGet(-length) < 0) {
+			this.index.set(0);
+		}
 	}
 
 }

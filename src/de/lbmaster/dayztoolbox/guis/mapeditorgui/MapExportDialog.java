@@ -86,7 +86,7 @@ public class MapExportDialog extends CustomDialog {
 				JFileChooser chooser = new JFileChooser();
 				chooser.setDialogTitle("Browse...");
 				chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				String lastFile = Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder, "");
+				String lastFile = Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER, "");
 				chooser.setCurrentDirectory(new File(lastFile));
 				chooser.setFileFilter(new FileFilter() {
 

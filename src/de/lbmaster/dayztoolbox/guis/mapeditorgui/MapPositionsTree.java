@@ -141,6 +141,8 @@ public class MapPositionsTree extends JScrollPane implements TreeExpansionListen
 	}
 
 	public void addPosition(MapPosition position, MapJPanel mappanel) {
+		if (jtree == null)
+			return;
 		int[] selectedNodes = jtree.getSelectionRows();
 
 		Map<CustomTreeNode, Boolean> selectedNodesCopy = new HashMap<CustomTreeNode, Boolean>();

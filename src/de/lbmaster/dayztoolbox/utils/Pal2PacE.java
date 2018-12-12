@@ -15,7 +15,7 @@ public class Pal2PacE {
 	}
 
 	public static Pal2PacE findPal2PacE() {
-		String pal2pac = Config.getConfig().getString(Constants.CONFIG_pal2pace);
+		String pal2pac = Config.getConfig().getString(Constants.CONFIG_LOCATION_PAL2PACE);
 		if (pal2pac == null)
 			return null;
 		File location = new File(pal2pac);

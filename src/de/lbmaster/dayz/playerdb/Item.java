@@ -3,11 +3,14 @@ package de.lbmaster.dayz.playerdb;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.lbmaster.dayztoolbox.utils.ByteUtilsBE;
+
 public class Item {
 
 	private int itemsInside;
 	private float health = -1;
 	private int stacksize = -1;
+	private int contentCount = -1;
 	private byte slotX;
 	private byte slotY;
 	private byte sizeX = 1;
@@ -18,11 +21,11 @@ public class Item {
 	private Item parent;
 
 	private Data data;
-	
+
 	public Item() {
 
 	}
-	
+
 	public Item(String name) {
 		this.name = name;
 	}
@@ -38,8 +41,10 @@ public class Item {
 		slotY = data.getByte();
 		slotX = data.getByte();
 		bodyslot = data.getString();
-		System.out.println("Slot: #" + bodyslot + "#");
 		this.data = data.getData();
+		System.out.println("Data from " + name + " at " + slotX + "," + slotY + ": " + ByteUtilsBE.bytesToHex(this.data.getContent()));
+		processItemSpecificData(this.data);
+		System.out.println("Item Health: " + this.health);
 		int childCount = data.getInt();
 		for (int i = 0; i < childCount; i++) {
 			Data childData = data.getData();
@@ -48,22 +53,31 @@ public class Item {
 			children.add(child);
 		}
 	}
-	
+
 	private void processItemSpecificData(Data data) {
+		data.skipBytes(1);
 		this.uniqueID = data.getInt();
+		int tags = data.getInt();
 		Data healthData = data.getData();
+		System.out.println("HealthData: " + ByteUtilsBE.bytesToHex(healthData.getContent()));
 		if (healthData.getLength() == 5) {
-			data.skipBytes(1);
-			this.health = data.getFloat();
+			healthData.skipBytes(1);
+			this.health = healthData.getFloat();
 		}
 		Data otherData = data.getData();
-		otherData.skipToByte((byte) 0xDF);
-		otherData.skipBytes(1);
+		DataArray array = new DataArray(otherData);
+		this.stacksize = (int) array.get(1);
 		if (!data.isAtEnd()) {
-			Data moreData = new Data(data.getRemainingBytes());
+			this.contentCount = Integer.parseInt(data.getNumber());
+			System.out.println("Remaining: " + data.getRemainingBytes().length + " ContentCount: " + this.contentCount);
+			if (this.contentCount == 0 && data.getRemainingBytes().length > 5) {
+				data.rewind(1);
+				this.contentCount = 128+data.getByte();
+			}
+			System.out.println("ContentCount " + contentCount);
 		}
 	}
-	
+
 	public String getName() {
 		return name;
 	}
@@ -92,9 +106,21 @@ public class Item {
 	public void setItemsInside(int itemsinside) {
 		this.itemsInside = itemsinside;
 	}
-	
+
 	@Override
 	public String toString() {
-		return name;
+		return (this.getStackSize() > 1 ? this.getStackSize() + "x " : "") + name + (this.getContentInside() >= 0 ? " (" + this.getContentInside() + ")" : "");
+	}
+
+	public float getHealth() {
+		return this.health;
+	}
+
+	public int getStackSize() {
+		return this.stacksize <= 0 ? 1 : this.stacksize;
+	}
+
+	public int getContentInside() {
+		return this.contentCount;
 	}
 }

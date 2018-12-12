@@ -37,9 +37,27 @@ public class ErrorDialog extends CustomDialog {
 
 	public static void displayError(String message) {
 		new ErrorDialog(message, true).setVisible(true);
-		System.err.println("Displayed Error Message: " + message);
+		StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+		StringBuilder sb = new StringBuilder();
+		sb.append("Displayed Error Message: " + message + "\n");
+		if (stack.length > 2) {
+			sb.append("\tat " + stackElementToString(stack[2]) + "\n");
+		}
+		for (int i = 3; i < stack.length; i++) {
+			if (i > 2+3)
+				break;
+			sb.append("\t   " + stackElementToString(stack[i]) + "\n");
+		}
+		System.out.println(sb.toString());
+		System.err.println(sb.toString());
 	}
 
+	public static String stackElementToString(StackTraceElement elm) {
+		if (elm == null)
+			return "";
+		return elm.getClassName() + "." + elm.getMethodName() + "(" + (elm.getFileName() == null ? "Unknown Source" : elm.getFileName() + ":" + elm.getLineNumber()) + ")";
+	}
+	
 	public static void displayInfo(String message) {
 		new ErrorDialog(message, false).setVisible(true);
 	}

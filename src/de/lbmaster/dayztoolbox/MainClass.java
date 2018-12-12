@@ -22,13 +22,13 @@ public class MainClass {
 
 	public static final int mainVersion = 0;
 	public static final int buildVersion = 0;
-	public static final int buildId = 11311;
+	public static final int buildId = 12054;
 
 	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		new ErrorReporter();
 		Config.getConfig().setAutoSave(true);
-		
+
 		checkMemory();
 		System.out.println("JVM is 64bit ? " + is64BitJVM());
 		findDayZServerFolder();
@@ -39,22 +39,43 @@ public class MainClass {
 		doUIManagerStuff();
 		setUIFont(new FontUIResource(Constants.FONT, Font.PLAIN, 12));
 		MainGui mainGui = new MainGui();
-		mainGui.setVisible(true);
 		removeOldUpdater();
 		boolean updateAvailable = hasUpdateAvailable();
 		System.out.println("Is Update Available ? " + updateAvailable);
 		if (updateAvailable)
 			mainGui.openUpdateDialog(false);
+		
+		if (args.length == 0 || (args.length > 0 && !args[0].equalsIgnoreCase("restarted")))
+			restartIfNeeded();
+		
+		mainGui.setVisible(true);
 	}
-	
+
+	private static void restartIfNeeded() { // This should prevent Heap space errors
+		int memoryAvailable = (int) (Runtime.getRuntime().maxMemory() / 1024 / 1024);
+		if (memoryAvailable < 3500) {
+			if (new File("DayZToolbox.jar").exists()) {
+				try {
+					Runtime.getRuntime().exec("java -Xmx4G -jar DayZToolbox.jar restarted");
+					System.out.println("Restarting with more memory");
+					System.exit(0);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		} else {
+			System.out.println("Max Memory is ok !");
+		}
+	}
+
 	public static void checkMemory() {
-		System.out.println((Runtime.getRuntime().maxMemory()/1024/1024) + "mb available");
+		System.out.println((Runtime.getRuntime().maxMemory() / 1024 / 1024) + "mb available");
 	}
-	
+
 	public static boolean isWindows() {
 		return System.getProperty("os.name").contains("Windows");
 	}
-	
+
 	public static boolean is64BitJVM() {
 		System.out.println("Java Version: " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "bit");
 		String version = System.getProperty("sun.arch.data.model");
@@ -102,8 +123,8 @@ public class MainClass {
 	}
 
 	private static boolean hasUpdateAvailable() {
-		Updater updater = new Updater("toast-teamspeak.de", 80);
-		if (updater.loadJson()) {
+		Updater updater = new Updater("toast-teamspeak.de");
+		if (updater.loadJson(false)) {
 			Version v = updater.getNewestVersion();
 			if (v != null) {
 				return !new Version(getBuildString()).isNewest(v);
@@ -115,12 +136,12 @@ public class MainClass {
 		}
 		return false;
 	}
-	
+
 	private static void findPal2PacEFolder() {
-		if (Config.getConfig().getString(Constants.CONFIG_pal2pace, null) == null || !PathFinder.validatePal2PacEPath(Config.getConfig().getString(Constants.CONFIG_pal2pace, null))) {
+		if (Config.getConfig().getString(Constants.CONFIG_LOCATION_PAL2PACE, null) == null || !PathFinder.validatePal2PacEPath(Config.getConfig().getString(Constants.CONFIG_LOCATION_PAL2PACE, null))) {
 			List<String> found = PathFinder.getPossiblePal2PacELocations();
 			if (found.size() > 0) {
-				Config.getConfig().setString(Constants.CONFIG_pal2pace, found.get(0).replace("\\", "/"));
+				Config.getConfig().setString(Constants.CONFIG_LOCATION_PAL2PACE, found.get(0).replace("\\", "/"));
 				System.out.println("Pal2PacE Path found ! " + found.get(0));
 			} else {
 				System.out.println("No Pal2PacE Path found ! ");
@@ -129,12 +150,12 @@ public class MainClass {
 			System.out.println("Pal2PacE Path already set !");
 		}
 	}
-	
+
 	private static void findArma3ToolsFolder() {
-		if (Config.getConfig().getString(Constants.CONFIG_arma3tools, null) == null || !PathFinder.validateArma3ToolsPath(Config.getConfig().getString(Constants.CONFIG_arma3tools, null))) {
+		if (Config.getConfig().getString(Constants.CONFIG_LOCATION_ARMA3TOOLS, null) == null || !PathFinder.validateArma3ToolsPath(Config.getConfig().getString(Constants.CONFIG_LOCATION_ARMA3TOOLS, null))) {
 			List<String> found = PathFinder.getPossibleArma3ToolsLocations();
 			if (found.size() > 0) {
-				Config.getConfig().setString(Constants.CONFIG_arma3tools, found.get(0).replace("\\", "/"));
+				Config.getConfig().setString(Constants.CONFIG_LOCATION_ARMA3TOOLS, found.get(0).replace("\\", "/"));
 				System.out.println("Arma 3 Tools Path found ! " + found.get(0));
 			} else {
 				System.out.println("No Arma 3 Tools Path found ! ");
@@ -143,11 +164,12 @@ public class MainClass {
 			System.out.println("Arma 3 Tools Path already set !");
 		}
 	}
+
 	private static void findDayZClientFolder() {
-		if (Config.getConfig().getString(Constants.CONFIG_dayzclient, null) == null || !PathFinder.validateDayZClientPath(Config.getConfig().getString(Constants.CONFIG_dayzclient, null))) {
+		if (Config.getConfig().getString(Constants.CONFIG_LOCATION_DAYZCLIENT, null) == null || !PathFinder.validateDayZClientPath(Config.getConfig().getString(Constants.CONFIG_LOCATION_DAYZCLIENT, null))) {
 			List<String> found = PathFinder.getPossibleDayZClientLocations();
 			if (found.size() > 0) {
-				Config.getConfig().setString(Constants.CONFIG_dayzclient, found.get(0).replace("\\", "/"));
+				Config.getConfig().setString(Constants.CONFIG_LOCATION_DAYZCLIENT, found.get(0).replace("\\", "/"));
 				System.out.println("DayZ Client Path found ! " + found.get(0));
 			} else {
 				System.out.println("No DayZ Client Path found ! ");
@@ -158,10 +180,10 @@ public class MainClass {
 	}
 
 	private static void findPBOManagerFolder() {
-		if (Config.getConfig().getString(Constants.CONFIG_pbomanager, null) == null || !PathFinder.validatePBOManagerPath(Config.getConfig().getString(Constants.CONFIG_pbomanager, null))) {
+		if (Config.getConfig().getString(Constants.CONFIG_LOCATION_PBOMANAGER, null) == null || !PathFinder.validatePBOManagerPath(Config.getConfig().getString(Constants.CONFIG_LOCATION_PBOMANAGER, null))) {
 			List<String> found = PathFinder.getPossiblePBOManagerLocations();
 			if (found.size() > 0) {
-				Config.getConfig().setString(Constants.CONFIG_pbomanager, found.get(0).replace("\\", "/"));
+				Config.getConfig().setString(Constants.CONFIG_LOCATION_PBOMANAGER, found.get(0).replace("\\", "/"));
 				System.out.println("PBOManager Path found ! " + found.get(0));
 			} else {
 				System.out.println("No PBOManager Path found ! ");
@@ -172,10 +194,10 @@ public class MainClass {
 	}
 
 	private static void findDayZServerFolder() {
-		if (Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder, null) == null || !PathFinder.validateDayZServerPath(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder, null))) {
+		if (Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER, null) == null || !PathFinder.validateDayZServerPath(Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER, null))) {
 			List<String> found = PathFinder.getPossibleDayZServerLocations();
 			if (found.size() > 0) {
-				Config.getConfig().setString(Constants.CONFIG_lastDayZServerFolder, found.get(0).replace("\\", "/"));
+				Config.getConfig().setString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER, found.get(0).replace("\\", "/"));
 				System.out.println("DayZ Server Path found ! " + found.get(0));
 			} else {
 				System.out.println("No DayZ Server Path found ! ");

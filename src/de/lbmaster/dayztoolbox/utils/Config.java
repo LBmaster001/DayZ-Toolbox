@@ -9,19 +9,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class Config {
 
 	private File file;
+	private boolean read = false;
 	private boolean autosave = false;
 	private Map<String, String> strings = new HashMap<String, String>();
 	private Map<String, Integer> ints = new HashMap<String, Integer>();
 	private Map<String, Float> floats = new HashMap<String, Float>();
 	private Map<String, Double> doubles = new HashMap<String, Double>();
 	private Map<String, Boolean> booleans = new HashMap<String, Boolean>();
-	private Map<String, ArrayList<String>> lists = new HashMap<String, ArrayList<String>>();
+	private Map<String, List<String>> lists = new HashMap<String, List<String>>();
 	private Map<String, Set<String>> sets = new HashMap<String, Set<String>>();
 
 	private static final String SPACER = "_";
@@ -39,28 +41,59 @@ public class Config {
 
 	public static Config getConfig() {
 		if (config == null) {
-			new Config(PathFinder.findDayZToolBoxFolder() + "/config.cfg");
+			new Config(PathFinder.findDayZToolBoxFolder() + "/config.cfg", true);
 			config.read();
 		}
 		return config;
 	}
-
+	
 	public Config(String file) {
-		this(new File(file));
+		this(file, false);
 	}
 
-	public Config(File file) {
+	public Config(String file, boolean global) {
+		this(new File(file), global);
+	}
+
+	public Config(File file, boolean global) {
 		this.file = file;
 		System.out.println("Config with file " + file.getPath() + " created");
-		Config.config = this;
+		if (global) {
+			Config.config = this;
+		}
+		if (!file.exists()) {
+			File parent = file.getParentFile();
+			if (parent != null && !parent.exists())
+				parent.mkdirs();
+		}
+	}
+	
+	public boolean delete() {
+		return this.file.delete();
 	}
 
+	public boolean isRead() {
+		return read;
+	}
+	
+	public boolean exsists() {
+		return file.exists();
+	}
+	
 	public void setAutoSave(boolean autosave) {
 		this.autosave = autosave;
 	}
 
 	public boolean isAutoSave() {
 		return autosave;
+	}
+	
+	public String getFileLocation() {
+		return file.getAbsolutePath();
+	}
+	
+	public File getFile() {
+		return file;
 	}
 
 	public boolean hasVariable(String varName) {
@@ -112,6 +145,7 @@ public class Config {
 					line = br.readLine();
 				}
 				br.close();
+				this.read = true;
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -219,7 +253,7 @@ public class Config {
 			write();
 	}
 
-	public void setList(String key, ArrayList<String> value) {
+	public void setList(String key, List<String> value) {
 		if (lists.containsKey(key)) {
 			lists.remove(key);
 		}
@@ -257,7 +291,12 @@ public class Config {
 		return booleans.get(key);
 	}
 
-	public ArrayList<String> getList(String key) {
+	public List<String> getList(String key) {
+		if (!lists.containsKey(key)) {
+			List<String> list = new ArrayList<String>();
+			lists.put(key, list);
+			return list;
+		}
 		return lists.get(key);
 	}
 
@@ -300,7 +339,7 @@ public class Config {
 		return booleans.get(key);
 	}
 
-	public ArrayList<String> getList(String key, ArrayList<String> ret) {
+	public List<String> getList(String key, List<String> ret) {
 		if (!lists.containsKey(key)) {
 			return ret;
 		}

@@ -44,7 +44,7 @@ public class SettingsGui extends CustomDialog {
 
 	public SettingsGui(String title) {
 		super(title);
-		setBounds(150, 130, 700, 345);
+		setSize(700, 345);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -144,22 +144,22 @@ public class SettingsGui extends CustomDialog {
 		JButton btnBrowseClient = new JButton("Browse...");
 		contentPanel.add(btnBrowseClient, "3, 6");
 
-		if (Config.getConfig().getString(Constants.CONFIG_dayzclient, null) != null) {
-			textDayZClient.setText(Config.getConfig().getString(Constants.CONFIG_dayzclient));
+		if (Config.getConfig().getString(Constants.CONFIG_LOCATION_DAYZCLIENT, null) != null) {
+			textDayZClient.setText(Config.getConfig().getString(Constants.CONFIG_LOCATION_DAYZCLIENT));
 		}
-		if (Config.getConfig().getString(Constants.CONFIG_pbomanager, null) != null) {
-			textPBOManager.setText(Config.getConfig().getString(Constants.CONFIG_pbomanager));
+		if (Config.getConfig().getString(Constants.CONFIG_LOCATION_PBOMANAGER, null) != null) {
+			textPBOManager.setText(Config.getConfig().getString(Constants.CONFIG_LOCATION_PBOMANAGER));
 		}
-		if (Config.getConfig().getString(Constants.CONFIG_arma3tools, null) != null) {
-			textArma3ToolsFolder.setText(Config.getConfig().getString(Constants.CONFIG_arma3tools));
-			if (PathFinder.validateArma3ToolsPath(Config.getConfig().getString(Constants.CONFIG_arma3tools)))
-				Config.getConfig().setString(Constants.CONFIG_pal2pace, Config.getConfig().getString(Constants.CONFIG_arma3tools) + "/TexView2");
+		if (Config.getConfig().getString(Constants.CONFIG_LOCATION_ARMA3TOOLS, null) != null) {
+			textArma3ToolsFolder.setText(Config.getConfig().getString(Constants.CONFIG_LOCATION_ARMA3TOOLS));
+			if (PathFinder.validateArma3ToolsPath(Config.getConfig().getString(Constants.CONFIG_LOCATION_ARMA3TOOLS)))
+				Config.getConfig().setString(Constants.CONFIG_LOCATION_PAL2PACE, Config.getConfig().getString(Constants.CONFIG_LOCATION_ARMA3TOOLS) + "/TexView2");
 		}
-		if (Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder, null) != null) {
-			textDayZServerFolder.setText(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder));
+		if (Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER, null) != null) {
+			textDayZServerFolder.setText(Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER));
 		}
-		if (Config.getConfig().getString(Constants.CONFIG_pal2pace, null) != null) {
-			textPal2PacE.setText(Config.getConfig().getString(Constants.CONFIG_pal2pace));
+		if (Config.getConfig().getString(Constants.CONFIG_LOCATION_PAL2PACE, null) != null) {
+			textPal2PacE.setText(Config.getConfig().getString(Constants.CONFIG_LOCATION_PAL2PACE));
 		}
 
 		btnBrowseClient.addActionListener(new CustomActionListener(textDayZClient, this));
@@ -233,15 +233,15 @@ public class SettingsGui extends CustomDialog {
 
 	private void save() {
 		if (textDayZServerFolder.getText().length() > 1)
-			Config.getConfig().setString(Constants.CONFIG_lastDayZServerFolder, textDayZServerFolder.getText());
+			Config.getConfig().setString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER, textDayZServerFolder.getText());
 		if (textArma3ToolsFolder.getText().length() > 1)
-			Config.getConfig().setString(Constants.CONFIG_arma3tools, textArma3ToolsFolder.getText());
+			Config.getConfig().setString(Constants.CONFIG_LOCATION_ARMA3TOOLS, textArma3ToolsFolder.getText());
 		if (textPBOManager.getText().length() > 1)
-			Config.getConfig().setString(Constants.CONFIG_pbomanager, textPBOManager.getText());
+			Config.getConfig().setString(Constants.CONFIG_LOCATION_PBOMANAGER, textPBOManager.getText());
 		if (textDayZClient.getText().length() > 1)
-			Config.getConfig().setString(Constants.CONFIG_dayzclient, textDayZClient.getText());
+			Config.getConfig().setString(Constants.CONFIG_LOCATION_DAYZCLIENT, textDayZClient.getText());
 		if (textPal2PacE.getText().length() > 1)
-			Config.getConfig().setString(Constants.CONFIG_pal2pace, textPal2PacE.getText());
+			Config.getConfig().setString(Constants.CONFIG_LOCATION_PAL2PACE, textPal2PacE.getText());
 
 	}
 }

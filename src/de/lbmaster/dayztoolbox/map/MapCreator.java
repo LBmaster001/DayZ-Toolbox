@@ -37,7 +37,7 @@ public class MapCreator {
 		f = new File(path);
 		File data_dir = new File(path + "/worlds_chernarusplus_data");
 		if (!data_dir.exists()) {
-			String pboManagerDir = Config.getConfig().getString(Constants.CONFIG_pbomanager, null);
+			String pboManagerDir = Config.getConfig().getString(Constants.CONFIG_LOCATION_PBOMANAGER, null);
 			if (pboManagerDir == null) {
 				List<String> possiblePBOManagers = PathFinder.getPossiblePBOManagerLocations();
 				if (possiblePBOManagers.size() > 0) {

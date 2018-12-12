@@ -1,13 +1,20 @@
 package de.lbmaster.dayztoolbox.guis.mapeditorgui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
@@ -27,7 +34,6 @@ import de.lbmaster.dayztoolbox.map.MapFile;
 import de.lbmaster.dayztoolbox.map.MapPositions;
 import de.lbmaster.dayztoolbox.utils.Config;
 import de.lbmaster.dayztoolbox.utils.PathFinder;
-import javax.swing.JLabel;
 
 public class MapEditorGui extends CustomDialog {
 
@@ -43,7 +49,7 @@ public class MapEditorGui extends CustomDialog {
 
 	public MapEditorGui(String title) {
 		super(title);
-		setBounds(100, 100, 1000, 600);
+		setSize(1000, 600);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -81,7 +87,7 @@ public class MapEditorGui extends CustomDialog {
 					}
 				});
 				chooser.setBounds(252, 41, 50, 19);
-				String lastFile = Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder, "");
+				String lastFile = Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER, "");
 				chooser.setCurrentDirectory(new File(lastFile));
 				getContentPane().add(chooser);
 
@@ -132,7 +138,7 @@ public class MapEditorGui extends CustomDialog {
 
 		textField = new JTextField();
 		buttonPane.add(textField, "1, 2, fill, center");
-		textField.setText(Config.getConfig().getString(Constants.CONFIG_lastMapFile, PathFinder.findDayZToolBoxFolder() + "/mapfileexample.mff"));
+		textField.setText(Config.getConfig().getString(Constants.CONFIG_LAST_MAP_FILE, PathFinder.findDayZToolBoxFolder() + "/mapfileexample.mff"));
 		textField.setColumns(10);
 
 		JButton btnBrowse = new JButton("Load...");
@@ -198,7 +204,7 @@ public class MapEditorGui extends CustomDialog {
 
 		btnExportPositions = new JButton("Export Positions");
 		btnExportPositions.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				new MapExportDialog(MapEditorGui.this).setVisible(true);
@@ -223,29 +229,28 @@ public class MapEditorGui extends CustomDialog {
 	public MapPositionsTree getRightPanel() {
 		return rightPanel;
 	}
-	
+
 	public MapJPanel getMapPanel() {
 		return mapView;
 	}
 
 	public void loadMe() {
-		textField.setText(Config.getConfig().getString(Constants.CONFIG_lastMapFile, textField.getText()));
-		if (new File(textField.getText()).exists())
-			load();
-		else {
-			ErrorDialog.displayError("Use the Map Creator to create a Map File or download my sample from: <a href=\"http://toast-teamspeak.de/dayztoolboxexamples/mapfileexample.mff\">mapfileexample.mff</a> and select it via the Browse... button.");
+		textField.setText(Config.getConfig().getString(Constants.CONFIG_LAST_MAP_FILE, textField.getText()));
+		if (!new File(textField.getText()).exists()) {
+			ErrorDialog.displayError("Use the Map Creator to create a Map File or download my sample from: <a href=\"http://toast-teamspeak.de/dayztoolboxexamples/mapfileexample.mff\">mapfileexample.mff</a> and drag it here or select ot via Load...");
 		}
+		load();
 	}
-	
+
 	public void load(MapFile mf, boolean loadonlyImages) {
 		removeMapPanels();
 		mapView = new MapJPanel(mf, this, loadonlyImages);
 		textField.setText("");
 		addMapPanels();
-		
+
 		MainClass.checkMemory();
 	}
-	
+
 	private void removeMapPanels() {
 		System.out.println("Components: " + contentPanel.getComponentCount());
 		if (mapView != null) {
@@ -257,7 +262,7 @@ public class MapEditorGui extends CustomDialog {
 		contentPanel.revalidate();
 		revalidate();
 	}
-	
+
 	private void addMapPanels() {
 		contentPanel.add(mapView, "1, 1, 1, 1, fill, fill");
 		addComponentListener(mapView);
@@ -267,16 +272,56 @@ public class MapEditorGui extends CustomDialog {
 		contentPanel.add(rightPanel, "2, 1, 2, 1, fill, fill");
 		contentPanel.revalidate();
 		revalidate();
+		addDropTarget();
 	}
 
 	public void load() {
-		if (!new File(textField.getText()).exists())
+		if (!new File(textField.getText()).exists()) {
+			addDropTarget();
 			return;
+		}
 		removeMapPanels();
-		Config.getConfig().setString(Constants.CONFIG_lastMapFile, textField.getText());
+		Config.getConfig().setString(Constants.CONFIG_LAST_MAP_FILE, textField.getText());
 		mapView = new MapJPanel(new MapFile(textField.getText()), this);
 		addMapPanels();
 		MainClass.checkMemory();
+	}
+
+	private void addDropTarget() {
+		if (mapView == null) {
+			mapView = new MapJPanel();
+			contentPanel.add(mapView, "1, 1, 1, 1, fill, fill");
+		}
+		System.out.println("Adding Drop Target");
+		mapView.setDropTarget(new DropTarget() {
+			private static final long serialVersionUID = 1L;
+
+			public synchronized void drop(DropTargetDropEvent evt) {
+				try {
+					evt.acceptDrop(DnDConstants.ACTION_COPY);
+					Object transferObject = evt.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+					if (transferObject instanceof List<?>) {
+						List<?> droppedFiles = (List<?>) transferObject;
+						if (droppedFiles != null) {
+							for (Object obj : droppedFiles) {
+								if (obj instanceof File) {
+									File file = (File) obj;
+									if (file != null && file.getName().endsWith(".mff")) {
+										textField.setText(file.getAbsolutePath());
+										load();
+										return;
+									}
+								}
+							}
+						}
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		});
+		mapView.setSize(100, 100);
+		mapView.setBackground(Color.BLACK);
 	}
 
 }

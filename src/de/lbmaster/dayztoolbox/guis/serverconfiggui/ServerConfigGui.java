@@ -10,7 +10,9 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.text.NumberFormat;
+import java.util.Base64;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -60,10 +62,10 @@ public class ServerConfigGui extends CustomDialog {
 
 	public ServerConfigGui(String title) {
 		super(title);
-		boolean advancedOptions = Config.getConfig().getBoolean(Constants.CONFIG_advancedConfigView, false);
+		boolean advancedOptions = Config.getConfig().getBoolean(Constants.CONFIG_ADVANCED_CONFIG_VIEW, false);
 
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		setBounds(150, 130, 780, advancedOptions ? fullHeight : smallHeight);
+		setSize(780, advancedOptions ? fullHeight : smallHeight);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -84,8 +86,8 @@ public class ServerConfigGui extends CustomDialog {
 		configchoice = new Choice();
 		contentPanel.add(configchoice, "2, 2");
 		addConfigChoiceItems();
-		int index = getItemIndex(Config.getConfig().getString(Constants.CONFIG_lastConfigLoaded));
-		System.out.println("Choice index: " + index + " " + Config.getConfig().getString(Constants.CONFIG_lastConfigLoaded));
+		int index = getItemIndex(Config.getConfig().getString(Constants.CONFIG_LAST_SERVER_CONFIG_LOADED));
+		System.out.println("Choice index: " + index + " " + Config.getConfig().getString(Constants.CONFIG_LAST_SERVER_CONFIG_LOADED));
 		if (index >= 0) {
 			configchoice.select(index);
 		}
@@ -320,7 +322,7 @@ public class ServerConfigGui extends CustomDialog {
 				} else {
 					setSize(getWidth(), smallHeight);
 				}
-				Config.getConfig().setBoolean(Constants.CONFIG_advancedConfigView, btnShowAdvancedOptions.isSelected());
+				Config.getConfig().setBoolean(Constants.CONFIG_ADVANCED_CONFIG_VIEW, btnShowAdvancedOptions.isSelected());
 			}
 		});
 
@@ -330,7 +332,7 @@ public class ServerConfigGui extends CustomDialog {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				boolean success = saveValues(new File(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder) + "/" + configchoice.getSelectedItem()));
+				boolean success = saveValues(new File(Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER) + "/" + configchoice.getSelectedItem()));
 				if (!success)
 					return;
 				close();
@@ -348,8 +350,8 @@ public class ServerConfigGui extends CustomDialog {
 	}
 
 	private void addConfigChoiceItems() {
-		for (File f : new File(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder)).listFiles()) {
-			if (f.isFile() && f.getName().endsWith(".cfg")) {
+		for (File f : new File(Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER)).listFiles()) {
+			if (f.isFile() && f.getName().endsWith(".cfg") && !f.getName().toLowerCase().startsWith("omega.cfg")) {
 				configchoice.add(f.getName());
 			}
 		}
@@ -388,7 +390,7 @@ public class ServerConfigGui extends CustomDialog {
 		cfg.setInteger("loginQueueConcurrentPlayers", (int) spinnerParallelProcessing.getValue());
 		cfg.setInteger("lootHistory", (int) spinnerPersistenceFileCount.getValue());
 		cfg.setInteger("respawnTime", (int) spinnerRespawnTime.getValue());
-		cfg.setInteger("serverTimeAcceleration", (int) spinnerTimeAcceleration.getValue());
+		cfg.setFloat("serverTimeAcceleration", (float) spinnerTimeAcceleration.getValue());
 		cfg.setInteger("vonCodecQuality", (int) spinnerVoNQuality.getValue());
 
 		cfg.setInteger("disableCrosshair", boxDisableCroshair.isSelected() ? 1 : 0);
@@ -408,7 +410,7 @@ public class ServerConfigGui extends CustomDialog {
 		try {
 
 			if (!cfg.canWrite()) {
-				ErrorDialog.displayError("The Config \"" + cfg.getFileLocation() + "\" can not be written ! Maybe the Server blocks the file access ?");
+				ErrorDialog.displayError("The Config \"" + cfg.getFileLocation() + "\" can not be written ! Maybe the Server blocks the file access or the file is write protected ?");
 				return false;
 			}
 
@@ -422,7 +424,7 @@ public class ServerConfigGui extends CustomDialog {
 	}
 
 	private void loadFile() {
-		File f = new File(Config.getConfig().getString(Constants.CONFIG_lastDayZServerFolder) + "/" + configchoice.getSelectedItem());
+		File f = new File(Config.getConfig().getString(Constants.CONFIG_LAST_DAYZ_SERVER_FOLDER) + "/" + configchoice.getSelectedItem());
 		if (!f.exists()) {
 			ErrorDialog.displayError("The File \"" + f + "\" does not exsist !");
 			return;
@@ -431,11 +433,13 @@ public class ServerConfigGui extends CustomDialog {
 			ErrorDialog.displayError("The File \"" + f + "\" can not be read !");
 			return;
 		}
-		Config.getConfig().setString(Constants.CONFIG_lastConfigLoaded, configchoice.getSelectedItem());
+		Config.getConfig().setString(Constants.CONFIG_LAST_SERVER_CONFIG_LOADED, configchoice.getSelectedItem());
 		System.out.println("Loading File " + f.getAbsolutePath());
 		DayZConfig cfg = new DayZConfig(f);
 		try {
 			System.out.println("Config Read: " + cfg.read());
+			String config = Base64.getEncoder().encodeToString(Files.readAllBytes(cfg.getFile().toPath()));
+			System.err.println("CFG: " + config);
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.err.println("Failed to read config " + cfg.getFileLocation());
@@ -449,7 +453,7 @@ public class ServerConfigGui extends CustomDialog {
 			textFieldStartTime.setText(cfg.getString("serverTime", "SystemTime"));
 			choiceTimeStampFormat.select(cfg.getString("timeStampFormat", "Short"));
 			textFieldLogFile.setText(cfg.getString("logFile", "server_console.log"));
-			textFieldMissionTemplate.setText(cfg.getString("Missions.DayZ.template", "dayzOffline.chernarusplussss"));
+			textFieldMissionTemplate.setText(cfg.getString("Missions.DayZ.template", "dayzOffline.chernarusplus"));
 
 			spinnerInstanceID.setValue(cfg.getInteger("instanceId", 0));
 			spinnerMaxPing.setValue(cfg.getInteger("maxPing", 200));
@@ -458,7 +462,7 @@ public class ServerConfigGui extends CustomDialog {
 			spinnerParallelProcessing.setValue(cfg.getInteger("loginQueueConcurrentPlayers", 5));
 			spinnerPersistenceFileCount.setValue(cfg.getInteger("lootHistory", 1));
 			spinnerRespawnTime.setValue(cfg.getInteger("respawnTime", 5));
-			spinnerTimeAcceleration.setValue(cfg.getInteger("serverTimeAcceleration", 0));
+			spinnerTimeAcceleration.setValue(cfg.getFloat("serverTimeAcceleration", 0));
 			spinnerVoNQuality.setValue(cfg.getInteger("vonCodecQuality", 7));
 
 			boxDisableCroshair.setSelected(cfg.getInteger("disableCrosshair", 0) == 1);

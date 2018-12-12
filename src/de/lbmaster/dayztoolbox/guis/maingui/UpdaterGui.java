@@ -24,7 +24,7 @@ public class UpdaterGui extends JDialog {
 	private final JPanel contentPanel = new JPanel();
 
 	public UpdaterGui() {
-		setBounds(120, 130, 450, 150);
+		setSize(450, 150);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -61,7 +61,7 @@ public class UpdaterGui extends JDialog {
 					MainClass.update();
 				} else if (e.getActionCommand().equals("later")) {
 					long later = System.currentTimeMillis() + 1000 * 60 * 60 * 24; // 24H
-					Config.getConfig().setString(Constants.CONFIG_reminderat, "" + later);
+					Config.getConfig().setString(Constants.CONFIG_REMINDER_AT, "" + later);
 					setVisible(false);
 				}
 			}

@@ -19,6 +19,7 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
+import de.lbmaster.dayztoolbox.guis.ErrorDialog;
 import de.lbmaster.dayztoolbox.map.MapFile;
 import de.lbmaster.dayztoolbox.map.MapImage;
 import de.lbmaster.dayztoolbox.map.MapPosition;
@@ -44,6 +45,10 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 	private int yDiff;
 	private Point startPoint;
 
+	public MapJPanel() {
+		
+	}
+	
 	public MapJPanel(MapFile mf, MapEditorGui gui) {
 		this(mf, gui, false);
 	}
@@ -70,6 +75,7 @@ public class MapJPanel extends JPanel implements MouseWheelListener, MouseListen
 					System.out.println("Finished reading Image");
 				} catch (IOException e) {
 					e.printStackTrace();
+					ErrorDialog.displayError("Failed to Read MapFile ! Caused by " + e.getMessage());
 				}
 			}
 		}).start();

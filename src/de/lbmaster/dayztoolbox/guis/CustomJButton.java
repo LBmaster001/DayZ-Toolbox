@@ -5,7 +5,10 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -23,7 +26,35 @@ public class CustomJButton extends JButton {
 	protected CustomDialog dialog;
 
 	public CustomJButton(final String text, final Class<? extends CustomDialog> class1) {
-		super(text);
+		this(text, class1, (Icon) null);
+	}
+
+	public CustomJButton(final String text, final Class<? extends CustomDialog> class1, String iconLocation) {
+		this(text, class1, loadIcon(iconLocation));
+	}
+
+	private static Icon loadIcon(String name) {
+		if (name == null)
+			return null;
+		System.out.println("Loading Image " + name);
+		try {
+			URL resource = CustomJButton.class.getResource(name);
+			Icon icon = new ImageIcon(resource);
+			return icon;
+		} catch (Exception e) {
+			System.out.println("Failed to load image " + name);
+			return null;
+		}
+	}
+
+	public CustomJButton(final String text, final Class<? extends CustomDialog> class1, Icon image) {
+		super();
+		if (image == null) {
+			setText(text);
+		} else {
+			setIcon(image);
+			setFocusable(false);
+		}
 
 		// setBorder(null);
 

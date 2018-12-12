@@ -172,6 +172,9 @@ public class ConfigEntryRaw {
 			if (casesensitive ? entry.getVarName().trim().equals(key) : entry.getVarName().trim().equalsIgnoreCase(key))
 				return entry;
 		}
+		if (key.equals("")) {
+			return getChildrens().get(0);
+		}
 		return null;
 	}
 

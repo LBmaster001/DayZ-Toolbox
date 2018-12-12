@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import de.lbmaster.dayztoolbox.utils.ByteUtilsBE;
+
 public class DataParser {
 	
 	public List<DBPlayer> loadAllDBPlayers(Map<String, byte[]> data) {
@@ -19,6 +21,7 @@ public class DataParser {
 	}
 	
 	public DBPlayer loadDBPlayer(byte[] content, String guid) {
+		System.out.println("Playerdata of Player " + guid + " : " + ByteUtilsBE.bytesToHex(content));
 		DBPlayer player = new DBPlayer(guid);
 		Data data = new Data(content);
 		String version = data.getHexString(4);

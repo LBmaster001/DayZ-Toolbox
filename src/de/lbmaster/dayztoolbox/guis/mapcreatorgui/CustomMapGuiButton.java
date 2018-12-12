@@ -6,6 +6,6 @@ public class CustomMapGuiButton extends CustomJButton {
 	private static final long serialVersionUID = 1L;
 
 	public CustomMapGuiButton() {
-		super("Map Creator GUI", MapCreatorGui.class);
+		super("Map Creator GUI", MapCreatorGui.class, "mapcreator.jpeg");
 	}
 }
